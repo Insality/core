@@ -28,6 +28,50 @@ jobs:
           REPO="$(echo "${GITHUB_REPOSITORY#*/}")"
           echo "url=https://${OWNER}.github.io/${REPO}" >> $GITHUB_OUTPUT
 
+      - name: restore old assets
+        continue-on-error: true
+        run: |
+          # Download existing ZIP files from GitHub Pages to preserve old versions
+          BASE_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/$(echo ${GITHUB_REPOSITORY#*/})"
+          echo "📥 Downloading existing assets from: $BASE_URL"
+          mkdir -p dist
+
+          # Try to download stores.json to get list of all stores
+          if curl -f -s "$BASE_URL/stores.json" -o /tmp/old_stores.json 2>/dev/null; then
+            echo "✅ Found existing stores.json"
+
+            # Read each store index and download ZIPs and images from it
+            for store_index in $(jq -r '.stores[].index' /tmp/old_stores.json | sed 's|.*/||'); do
+              echo "📂 Processing store: $store_index"
+
+              if curl -f -s "$BASE_URL/$store_index" -o "/tmp/$store_index" 2>/dev/null; then
+                # Download ZIPs
+                jq -r '.items[]?.zip_url // empty' "/tmp/$store_index" | while read zip_url; do
+                  if [[ -n "$zip_url" ]]; then
+                    zip_path=$(echo "$zip_url" | sed "s|$BASE_URL/||")
+                    mkdir -p "dist/$(dirname "$zip_path")"
+                    echo "  ⬇️  ZIP: $zip_path"
+                    curl -f -s "$zip_url" -o "dist/$zip_path" 2>/dev/null || true
+                  fi
+                done
+
+                # Download images
+                jq -r '.items[]?.image // empty' "/tmp/$store_index" | while read img_url; do
+                  if [[ -n "$img_url" ]]; then
+                    img_path=$(echo "$img_url" | sed "s|$BASE_URL/||")
+                    mkdir -p "dist/$(dirname "$img_path")"
+                    echo "  ⬇️  IMG: $img_path"
+                    curl -f -s "$img_url" -o "dist/$img_path" 2>/dev/null || true
+                  fi
+                done
+              fi
+            done
+
+            echo "✅ Old assets restored"
+          else
+            echo "ℹ️  No existing stores.json found, starting fresh"
+          fi
+
       - name: pack all stores
         env:
           ASSETS_ROOT: .

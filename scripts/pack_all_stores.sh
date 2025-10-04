@@ -3,11 +3,31 @@ set -euo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC_STORES_JSON="$ROOT/stores.json"
-ASSETS_ROOT="${ASSETS_ROOT:-$ROOT/assets}"
-DIST_DIR="${DIST_DIR:-$ROOT/dist}"
-BASE_URL="${BASE_URL:-}"  # set by CI to Pages URL
 
+# Convert ASSETS_ROOT to absolute path if relative
+if [[ -n "${ASSETS_ROOT:-}" ]]; then
+  # Handle relative paths
+  if [[ "$ASSETS_ROOT" != /* ]]; then
+    ASSETS_ROOT="$ROOT/$ASSETS_ROOT"
+  fi
+else
+  ASSETS_ROOT="$ROOT/assets"
+fi
+
+# Convert DIST_DIR to absolute path if relative
+if [[ -n "${DIST_DIR:-}" ]]; then
+  # Handle relative paths
+  if [[ "$DIST_DIR" != /* ]]; then
+    DIST_DIR="$ROOT/$DIST_DIR"
+  fi
+else
+  DIST_DIR="$ROOT/dist"
+fi
+
+# Create dist directory
 mkdir -p "$DIST_DIR"
+
+BASE_URL="${BASE_URL:-}"  # set by CI to Pages URL
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "Missing '$1'"; exit 1; }; }
 require jq
@@ -43,10 +63,6 @@ pack_folder_store() {
   echo "   out_index: $out_index"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-  # Create directories for this store
-  mkdir -p "$DIST_DIR/$content_folder"
-  mkdir -p "$DIST_DIR/images"
-
   local tmp_index
   tmp_index="$(mktemp)"
   # Simple structure: just items array
@@ -62,14 +78,14 @@ pack_folder_store() {
 
   echo "📂 Searching for manifests in: $src_dir"
   echo "   Pattern: $src_dir/*/*.json and $src_dir/*/*/*.json"
-  
+
   shopt -s nullglob
   local all_manifests=()
   # Support both 2-level (widget/fps_panel/) and 3-level (widget/insality/fps_panel/)
   for manifest in "$src_dir"/*/*.json "$src_dir"/*/*/*.json; do
     all_manifests+=("$manifest")
   done
-  
+
   # Sort manifests by modification time (oldest first)
   if [[ ${#all_manifests[@]} -gt 0 ]]; then
     local sorted_manifests
@@ -79,9 +95,9 @@ pack_folder_store() {
       [[ -n "$line" ]] && all_manifests+=("$line")
     done <<< "$sorted_manifests"
   fi
-  
+
   echo "   Found ${#all_manifests[@]} manifest(s) (sorted by modification time)"
-  
+
   for manifest in "${all_manifests[@]}"; do
     echo ""
     echo "─────────────────────────────────────────────────────"
@@ -89,11 +105,11 @@ pack_folder_store() {
     local asset_dir; asset_dir="$(dirname "$manifest")"
     local asset_folder; asset_folder="$(basename "$asset_dir")"
     local name_no_ext; name_no_ext="$(basename "$manifest" .json)"
-    
+
     echo "   asset_dir: $asset_dir"
     echo "   asset_folder: $asset_folder"
     echo "   name_no_ext: $name_no_ext"
-    
+
     if [[ "$asset_folder" != "$name_no_ext" ]]; then
       echo "   ⚠️  SKIP: folder name '$asset_folder' != manifest name '$name_no_ext'"
       continue
@@ -119,7 +135,7 @@ pack_folder_store() {
       echo "   ❌ ERROR: $store_name/$id has no version" >&2
       exit 1
     fi
-    
+
     if [[ -z "$author" || "$author" == "null" ]]; then
       echo "   ❌ ERROR: $store_name/$id has no author" >&2
       exit 1
@@ -138,12 +154,12 @@ pack_folder_store() {
         content_items+=("$line")
       done < <(cd "$asset_dir" && find . -maxdepth 1 -type f ! -name '*.json' ! -name '.*' -exec basename {} \;)
     fi
-    
+
     echo "   📦 Content to pack (${#content_items[@]}):"
     for f in "${content_items[@]}"; do
       echo "      - $f"
     done
-    
+
     if [[ ${#content_items[@]} -eq 0 ]]; then
       echo "   ❌ ERROR: $store_name/$id has no content to pack" >&2
       exit 1
@@ -152,23 +168,26 @@ pack_folder_store() {
     # ZIP name format: author:id@version.zip in content_folder/
     local zip_name="${author}:${id}@${version}.zip"
     local zip_path="$DIST_DIR/$content_folder/$zip_name"
-    
+
     echo "   🗜️  Creating ZIP: $content_folder/$zip_name"
     echo "   📍 ZIP path: $zip_path"
     echo "   📍 Working dir for zip: $asset_dir"
 
+    # Ensure directory exists before creating ZIP
+    mkdir -p "$(dirname "$zip_path")"
+
     # Create ZIP (will overwrite if exists)
     ( cd "$asset_dir" && zip -q -r "$zip_path" "${content_items[@]}" )
-    
+
     if [[ ! -f "$zip_path" ]]; then
       echo "   ❌ ERROR: Failed to create ZIP at $zip_path" >&2
       exit 1
     fi
-    
+
     echo "   ✅ ZIP created successfully"
 
     local sha256 size zip_url image_url=""
-    
+
     # Cross-platform sha256
     if command -v sha256sum >/dev/null 2>&1; then
       sha256="$(sha256sum "$zip_path" | awk '{print $1}')"
@@ -178,24 +197,25 @@ pack_folder_store() {
       echo "   ❌ ERROR: No sha256 command found (tried sha256sum, shasum)" >&2
       exit 1
     fi
-    
+
     # Cross-platform file size
     if stat -c%s "$zip_path" >/dev/null 2>&1; then
       size="$(stat -c%s "$zip_path")"  # Linux
     else
       size="$(stat -f%z "$zip_path")"  # macOS/BSD
     fi
-    
+
     zip_url="${BASE_URL:+$BASE_URL/}$content_folder/$zip_name"
-    
+
     echo "   🔐 SHA256: $sha256"
     echo "   📏 Size: $size bytes"
     echo "   🔗 ZIP URL: $zip_url"
 
     if [[ -n "$image_rel" && -f "$asset_dir/$image_rel" ]]; then
       echo "   🖼️  Copying image: $image_rel"
-      mkdir -p "$DIST_DIR/images/$id"
-      cp -f "$asset_dir/$image_rel" "$DIST_DIR/images/$id/"
+      local image_dir="$DIST_DIR/images/$id"
+      mkdir -p "$image_dir"
+      cp -f "$asset_dir/$image_rel" "$image_dir/"
       local img_name; img_name="$(basename "$image_rel")"
       image_url="${BASE_URL:+$BASE_URL/}images/$id/$img_name"
       echo "   🔗 Image URL: $image_url"
