@@ -1,0 +1,45 @@
+{
+	"stores": [
+		{
+			"name": "[Defold] Assets Store",
+			"type": "defold-dependencies",
+			"index": "defold_asset_store.json",
+			"folder": "assets"
+		},
+		{
+			"name": "[Druid] Widgets Store",
+			"type": "folder",
+			"default_folder": "widget",
+			"index": "druid_widget_store.json",
+			"folder": "widget"
+		},
+		{
+			"name": "[Decore] Systems Store",
+			"type": "folder",
+			"default_folder": "system",
+			"index": "decore_system_store.json",
+			"folder": "system"
+		},
+		{
+			"name": "[Druid] Entities Store",
+			"type": "folder",
+			"default_folder": "entity",
+			"index": "druid_entity_store.json",
+			"folder": "entity"
+		},
+		{
+			"name": "[Defold] Particles Store",
+			"type": "folder",
+			"default_folder": "particle",
+			"index": "defold_particle_store.json",
+			"folder": "particle"
+		},
+		{
+			"name": "[Defold] Shaders Store",
+			"type": "folder",
+			"default_folder": "material",
+			"index": "defold_shader_store.json",
+			"folder": "material"
+		}
+	]
+}

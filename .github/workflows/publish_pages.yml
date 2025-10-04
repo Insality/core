@@ -1,0 +1,51 @@
+name: publish_pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq zip
+
+      - name: compute base url
+        id: base
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          REPO="$(echo "${GITHUB_REPOSITORY#*/}")"
+          echo "url=https://${OWNER}.github.io/${REPO}" >> $GITHUB_OUTPUT
+
+      - name: pack all stores
+        env:
+          ASSETS_ROOT: assets
+          DIST_DIR: dist
+          BASE_URL: ${{ steps.base.outputs.url }}
+        run: bash scripts/pack_all_stores.sh
+
+      - name: configure pages
+        uses: actions/configure-pages@v5
+
+      - name: upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: deploy to pages
+        uses: actions/deploy-pages@v4
+
+      - name: summary
+        run: |
+          echo "Published at: ${{ steps.base.outputs.url }}/"
