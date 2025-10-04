@@ -6,7 +6,8 @@
 	"title": "FPS Panel",
 	"description": "Shows current FPS and graph of the last 3 seconds of performance",
 	"image": "fps_panel.png",
-	"url": "https://github.com/Insality",
+	"api": "fps_panel.md",
+	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
 	"content": [
 		"fps_panel.gui",

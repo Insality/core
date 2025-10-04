@@ -77,6 +77,9 @@ jobs:
           ASSETS_ROOT: .
           DIST_DIR: dist
           BASE_URL: ${{ steps.base.outputs.url }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+          GITHUB_BRANCH: main
         run: bash scripts/pack_all_stores.sh
 
       - name: configure pages

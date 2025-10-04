@@ -5,7 +5,8 @@
 	"title": "Mini Graph",
 	"description": "Widget to display a several lines with different height in a row",
 	"image": "mini_graph.png",
-	"url": "https://github.com/Insality",
+	"api": "mini_graph.md",
+	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
 	"content": [
 		"mini_graph.gui",

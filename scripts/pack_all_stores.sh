@@ -4,6 +4,11 @@ set -euo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC_STORES_JSON="$ROOT/stores.json"
 
+# GitHub repository info (can be overridden by environment variables)
+GITHUB_OWNER="${GITHUB_OWNER:-Insality}"
+GITHUB_REPO="${GITHUB_REPO:-core}"
+GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
+
 # Convert ASSETS_ROOT to absolute path if relative
 if [[ -n "${ASSETS_ROOT:-}" ]]; then
   # Handle relative paths
@@ -11,7 +16,7 @@ if [[ -n "${ASSETS_ROOT:-}" ]]; then
     ASSETS_ROOT="$ROOT/$ASSETS_ROOT"
   fi
 else
-  ASSETS_ROOT="$ROOT/assets"
+  ASSETS_ROOT="$ROOT"
 fi
 
 # Convert DIST_DIR to absolute path if relative
@@ -115,13 +120,14 @@ pack_folder_store() {
       continue
     fi
 
-    local id version title author description url image_rel depends tags
+    local id version title author description api author_url image_rel depends tags
     id="$(jq -r '.id // "'$asset_folder'"' "$manifest")"
     version="$(jq -r '.version' "$manifest")"
     title="$(jq -r '.title // "'$id'"' "$manifest")"
     author="$(jq -r '.author // empty' "$manifest")"
     description="$(jq -r '.description // empty' "$manifest")"
-    url="$(jq -r '.url // empty' "$manifest")"
+    api="$(jq -r '.api // empty' "$manifest")"
+    author_url="$(jq -r '.author_url // empty' "$manifest")"
     image_rel="$(jq -r '.image // empty' "$manifest")"
     depends="$(jq -c '.depends // []' "$manifest")"
     tags="$(jq -c '.tags // []' "$manifest")"
@@ -211,6 +217,15 @@ pack_folder_store() {
     echo "   📏 Size: $size bytes"
     echo "   🔗 ZIP URL: $zip_url"
 
+    # Copy manifest JSON to dist
+    local manifest_url=""
+    local manifest_dist_dir="$DIST_DIR/manifests/$content_folder"
+    mkdir -p "$manifest_dist_dir"
+    cp -f "$manifest" "$manifest_dist_dir/${id}.json"
+    manifest_url="${BASE_URL:+$BASE_URL/}manifests/$content_folder/${id}.json"
+    echo "   📋 Manifest URL: $manifest_url"
+
+    # Copy image if exists
     if [[ -n "$image_rel" && -f "$asset_dir/$image_rel" ]]; then
       echo "   🖼️  Copying image: $image_rel"
       local image_dir="$DIST_DIR/images/$id"
@@ -223,18 +238,39 @@ pack_folder_store() {
       echo "   ℹ️  No image specified or found"
     fi
 
+    # Generate GitHub URL for API documentation
+    local api_url=""
+    if [[ -n "$api" ]]; then
+      # Check if it's already a full URL (starts with http:// or https://)
+      if [[ "$api" =~ ^https?:// ]]; then
+        api_url="$api"
+        echo "   🔗 API URL (external): $api_url"
+      elif [[ -f "$asset_dir/$api" ]]; then
+        # Generate GitHub URL: get relative path from repo root
+        local relative_path="${asset_dir#$ASSETS_ROOT/}/$api"
+        api_url="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/blob/$GITHUB_BRANCH/$relative_path"
+        echo "   🔗 API URL (GitHub): $api_url"
+      else
+        echo "   ⚠️  API file not found: $api"
+      fi
+    fi
+
     # Build item JSON with all fields
     local item
     item="$(jq -n \
       --arg id "$id" --arg version "$version" --arg title "$title" \
-      --arg author "$author" --arg description "$description" --arg url "$url" \
+      --arg author "$author" --arg description "$description" \
+      --arg api "$api_url" --arg author_url "$author_url" \
       --arg image "$image_url" --arg zip_url "$zip_url" --arg sha256 "$sha256" \
+      --arg manifest_url "$manifest_url" \
       --argjson depends "$depends" --argjson tags "$tags" \
       '{ id:$id, version:$version, title:$title,
          author:( $author|select(length>0) ),
          description:( $description|select(length>0) ),
-         url:( $url|select(length>0) ),
+         api:( $api|select(length>0) ),
+         author_url:( $author_url|select(length>0) ),
          image:( $image|select(length>0) ),
+         manifest_url:$manifest_url,
          zip_url:$zip_url, sha256:$sha256, size:'"$size"',
          depends:$depends, tags:$tags }')"
 
