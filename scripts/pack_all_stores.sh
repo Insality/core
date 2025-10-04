@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-SRC_STORES_JSON="$ROOT/store/stores.json"
+SRC_STORES_JSON="$ROOT/stores.json"
 ASSETS_ROOT="${ASSETS_ROOT:-$ROOT/assets}"
 DIST_DIR="${DIST_DIR:-$ROOT/dist}"
 BASE_URL="${BASE_URL:-}"  # set by CI to Pages URL
