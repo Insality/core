@@ -43,18 +43,6 @@ if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1
   exit 1
 fi
 
-pluralize() {  # very light pluralizer for compatibility keys
-  case "$1" in
-    widget) echo "widgets";;
-    system) echo "systems";;
-    entity) echo "entities";;
-    particle) echo "particles";;
-    material) echo "materials";;
-    asset) echo "assets";;
-    *) echo "items";;
-  esac
-}
-
 pack_folder_store() {
   local store_name="$1" store_index="$2" content_folder="$3"
 

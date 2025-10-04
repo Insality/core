@@ -64,6 +64,16 @@ jobs:
                     curl -f -s "$img_url" -o "dist/$img_path" 2>/dev/null || true
                   fi
                 done
+                
+                # Download manifests
+                jq -r '.items[]?.manifest_url // empty' "/tmp/$store_index" | while read manifest_url; do
+                  if [[ -n "$manifest_url" ]]; then
+                    manifest_path=$(echo "$manifest_url" | sed "s|$BASE_URL/||")
+                    mkdir -p "dist/$(dirname "$manifest_path")"
+                    echo "  ⬇️  MNF: $manifest_path"
+                    curl -f -s "$manifest_url" -o "dist/$manifest_path" 2>/dev/null || true
+                  fi
+                done
               fi
             done
 
