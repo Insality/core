@@ -1,13 +1,13 @@
 {
-	"id": "mini_graph",
-	"version": "1.0",
-	"title": "Mini Graph",
-	"image": "mini_graph.png",
-	"description": "Widget to display a several lines with different height in a row",
 	"author": "Insality",
+	"id": "mini_graph",
+	"version": 1,
+	"title": "Mini Graph",
+	"description": "Widget to display a several lines with different height in a row",
+	"image": "mini_graph.png",
 	"url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
-	"files": [
+	"content": [
 		"mini_graph.gui",
 		"mini_graph.lua"
 	]

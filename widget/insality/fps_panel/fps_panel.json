@@ -1,15 +1,16 @@
 {
-	"id": "fps_panel",
-	"version": "1.0",
-	"depends": "insality:mini_graph",
-	"title": "FPS Panel",
-	"image": "fps_panel.png",
-	"description": "Shows current FPS and graph of the last 3 seconds of performance",
 	"author": "Insality",
+	"id": "fps_panel",
+	"version": 1,
+	"depends": [ "Insality:mini_graph@1" ],
+	"title": "FPS Panel",
+	"description": "Shows current FPS and graph of the last 3 seconds of performance",
+	"image": "fps_panel.png",
 	"url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
-	"files": [
+	"content": [
 		"fps_panel.gui",
-		"fps_panel.lua"
+		"fps_panel.lua",
+		"assets"
 	]
 }

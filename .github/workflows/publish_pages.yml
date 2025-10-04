@@ -30,7 +30,7 @@ jobs:
 
       - name: pack all stores
         env:
-          ASSETS_ROOT: assets
+          ASSETS_ROOT: .
           DIST_DIR: dist
           BASE_URL: ${{ steps.base.outputs.url }}
         run: bash scripts/pack_all_stores.sh

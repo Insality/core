@@ -12,7 +12,11 @@ mkdir -p "$DIST_DIR"
 require() { command -v "$1" >/dev/null 2>&1 || { echo "Missing '$1'"; exit 1; }; }
 require jq
 require zip
-require sha256sum
+# Check for sha256 command (either sha256sum or shasum)
+if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1; then
+  echo "Missing sha256 command (need either 'sha256sum' or 'shasum')"
+  exit 1
+fi
 
 pluralize() {  # very light pluralizer for compatibility keys
   case "$1" in
@@ -27,88 +31,206 @@ pluralize() {  # very light pluralizer for compatibility keys
 }
 
 pack_folder_store() {
-  local store_name="$1" store_index="$2" folder="$3"
+  local store_name="$1" store_index="$2" content_folder="$3"
 
-  local src_dir="$ASSETS_ROOT/$folder"
+  local src_dir="$ASSETS_ROOT/$content_folder"
   local out_index="$DIST_DIR/$store_index"
-  local array_key="$(pluralize "$folder")"
 
-  mkdir -p "$DIST_DIR/images/$folder"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "📦 Packing store: $store_name"
+  echo "   content: $content_folder"
+  echo "   src_dir: $src_dir"
+  echo "   out_index: $out_index"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  # Create directories for this store
+  mkdir -p "$DIST_DIR/$content_folder"
+  mkdir -p "$DIST_DIR/images"
 
   local tmp_index
   tmp_index="$(mktemp)"
-  # dual keys for compatibility: array_key + 'items'
-  jq -n --arg key "$array_key" '{schema_version:1} | .[$key]=[] | .items=[]' > "$tmp_index"
+  # Simple structure: just items array
+  jq -n '{items:[]}' > "$tmp_index"
 
   # nothing to pack? still emit empty index
-  [[ -d "$src_dir" ]] || { cp "$tmp_index" "$out_index"; echo "no '$src_dir', wrote empty $store_index"; return; }
+  if [[ ! -d "$src_dir" ]]; then
+    echo "⚠️  Directory '$src_dir' does not exist, writing empty index"
+    cp "$tmp_index" "$out_index"
+    echo "✅ Wrote empty $store_index"
+    return
+  fi
 
+  echo "📂 Searching for manifests in: $src_dir"
+  echo "   Pattern: $src_dir/*/*.json and $src_dir/*/*/*.json"
+  
   shopt -s nullglob
-  for manifest in "$src_dir"/*/*.json; do
+  local all_manifests=()
+  # Support both 2-level (widget/fps_panel/) and 3-level (widget/insality/fps_panel/)
+  for manifest in "$src_dir"/*/*.json "$src_dir"/*/*/*.json; do
+    all_manifests+=("$manifest")
+  done
+  
+  # Sort manifests by modification time (oldest first)
+  if [[ ${#all_manifests[@]} -gt 0 ]]; then
+    local sorted_manifests
+    sorted_manifests="$(printf '%s\n' "${all_manifests[@]}" | xargs ls -tr)"
+    all_manifests=()
+    while IFS= read -r line; do
+      [[ -n "$line" ]] && all_manifests+=("$line")
+    done <<< "$sorted_manifests"
+  fi
+  
+  echo "   Found ${#all_manifests[@]} manifest(s) (sorted by modification time)"
+  
+  for manifest in "${all_manifests[@]}"; do
+    echo ""
+    echo "─────────────────────────────────────────────────────"
+    echo "📄 Processing: $manifest"
     local asset_dir; asset_dir="$(dirname "$manifest")"
     local asset_folder; asset_folder="$(basename "$asset_dir")"
     local name_no_ext; name_no_ext="$(basename "$manifest" .json)"
-    [[ "$asset_folder" != "$name_no_ext" ]] && continue
+    
+    echo "   asset_dir: $asset_dir"
+    echo "   asset_folder: $asset_folder"
+    echo "   name_no_ext: $name_no_ext"
+    
+    if [[ "$asset_folder" != "$name_no_ext" ]]; then
+      echo "   ⚠️  SKIP: folder name '$asset_folder' != manifest name '$name_no_ext'"
+      continue
+    fi
 
-    local id version title author license image_rel depends tags
+    local id version title author description url image_rel depends tags
     id="$(jq -r '.id // "'$asset_folder'"' "$manifest")"
     version="$(jq -r '.version' "$manifest")"
     title="$(jq -r '.title // "'$id'"' "$manifest")"
     author="$(jq -r '.author // empty' "$manifest")"
-    license="$(jq -r '.license // empty' "$manifest")"
+    description="$(jq -r '.description // empty' "$manifest")"
+    url="$(jq -r '.url // empty' "$manifest")"
     image_rel="$(jq -r '.image // empty' "$manifest")"
     depends="$(jq -c '.depends // []' "$manifest")"
     tags="$(jq -c '.tags // []' "$manifest")"
 
-    [[ -z "$version" || "$version" == "null" ]] && { echo "ERROR: $store_name/$id has no version" >&2; exit 1; }
+    echo "   📋 id: $id"
+    echo "   📋 version: $version"
+    echo "   📋 title: $title"
+    echo "   📋 author: $author"
 
-    local files=()
-    if jq -e '.files' "$manifest" > /dev/null; then
-      mapfile -t files < <(jq -r '.files[]' "$manifest")
-    else
-      mapfile -t files < <(cd "$asset_dir" && find . -maxdepth 1 -type f ! -name '*.json' ! -name '.*' -printf '%P\n')
+    if [[ -z "$version" || "$version" == "null" ]]; then
+      echo "   ❌ ERROR: $store_name/$id has no version" >&2
+      exit 1
     fi
-    [[ ${#files[@]} -eq 0 ]] && { echo "ERROR: $store_name/$id has no files to pack" >&2; exit 1; }
+    
+    if [[ -z "$author" || "$author" == "null" ]]; then
+      echo "   ❌ ERROR: $store_name/$id has no author" >&2
+      exit 1
+    fi
 
-    local zip_name="${folder}-${id}-${version}.zip"
-    local zip_path="$DIST_DIR/$zip_name"
+    # Read content array (new field name instead of files)
+    local content_items=()
+    if jq -e '.content' "$manifest" > /dev/null; then
+      echo "   📝 Using content from manifest"
+      while IFS= read -r line; do
+        content_items+=("$line")
+      done < <(jq -r '.content[]' "$manifest")
+    else
+      echo "   📝 Auto-detecting files in directory"
+      while IFS= read -r line; do
+        content_items+=("$line")
+      done < <(cd "$asset_dir" && find . -maxdepth 1 -type f ! -name '*.json' ! -name '.*' -exec basename {} \;)
+    fi
+    
+    echo "   📦 Content to pack (${#content_items[@]}):"
+    for f in "${content_items[@]}"; do
+      echo "      - $f"
+    done
+    
+    if [[ ${#content_items[@]} -eq 0 ]]; then
+      echo "   ❌ ERROR: $store_name/$id has no content to pack" >&2
+      exit 1
+    fi
 
-    ( cd "$asset_dir" && zip -q -r "$zip_path" "${files[@]}" )
+    # ZIP name format: author:id@version.zip in content_folder/
+    local zip_name="${author}:${id}@${version}.zip"
+    local zip_path="$DIST_DIR/$content_folder/$zip_name"
+    
+    echo "   🗜️  Creating ZIP: $content_folder/$zip_name"
+    echo "   📍 ZIP path: $zip_path"
+    echo "   📍 Working dir for zip: $asset_dir"
+
+    # Create ZIP (will overwrite if exists)
+    ( cd "$asset_dir" && zip -q -r "$zip_path" "${content_items[@]}" )
+    
+    if [[ ! -f "$zip_path" ]]; then
+      echo "   ❌ ERROR: Failed to create ZIP at $zip_path" >&2
+      exit 1
+    fi
+    
+    echo "   ✅ ZIP created successfully"
 
     local sha256 size zip_url image_url=""
-    sha256="$(sha256sum "$zip_path" | awk '{print $1}')"
-    size="$(stat -c%s "$zip_path")"
-    zip_url="${BASE_URL:+$BASE_URL/}$zip_name"
+    
+    # Cross-platform sha256
+    if command -v sha256sum >/dev/null 2>&1; then
+      sha256="$(sha256sum "$zip_path" | awk '{print $1}')"
+    elif command -v shasum >/dev/null 2>&1; then
+      sha256="$(shasum -a 256 "$zip_path" | awk '{print $1}')"
+    else
+      echo "   ❌ ERROR: No sha256 command found (tried sha256sum, shasum)" >&2
+      exit 1
+    fi
+    
+    # Cross-platform file size
+    if stat -c%s "$zip_path" >/dev/null 2>&1; then
+      size="$(stat -c%s "$zip_path")"  # Linux
+    else
+      size="$(stat -f%z "$zip_path")"  # macOS/BSD
+    fi
+    
+    zip_url="${BASE_URL:+$BASE_URL/}$content_folder/$zip_name"
+    
+    echo "   🔐 SHA256: $sha256"
+    echo "   📏 Size: $size bytes"
+    echo "   🔗 ZIP URL: $zip_url"
 
     if [[ -n "$image_rel" && -f "$asset_dir/$image_rel" ]]; then
-      mkdir -p "$DIST_DIR/images/$folder/$id"
-      cp -f "$asset_dir/$image_rel" "$DIST_DIR/images/$folder/$id/"
+      echo "   🖼️  Copying image: $image_rel"
+      mkdir -p "$DIST_DIR/images/$id"
+      cp -f "$asset_dir/$image_rel" "$DIST_DIR/images/$id/"
       local img_name; img_name="$(basename "$image_rel")"
-      image_url="${BASE_URL:+$BASE_URL/}images/$folder/$id/$img_name"
+      image_url="${BASE_URL:+$BASE_URL/}images/$id/$img_name"
+      echo "   🔗 Image URL: $image_url"
+    else
+      echo "   ℹ️  No image specified or found"
     fi
 
+    # Build item JSON with all fields
     local item
     item="$(jq -n \
       --arg id "$id" --arg version "$version" --arg title "$title" \
-      --arg author "$author" --arg license "$license" \
+      --arg author "$author" --arg description "$description" --arg url "$url" \
       --arg image "$image_url" --arg zip_url "$zip_url" --arg sha256 "$sha256" \
       --argjson depends "$depends" --argjson tags "$tags" \
       '{ id:$id, version:$version, title:$title,
          author:( $author|select(length>0) ),
-         license:( $license|select(length>0) ),
+         description:( $description|select(length>0) ),
+         url:( $url|select(length>0) ),
          image:( $image|select(length>0) ),
          zip_url:$zip_url, sha256:$sha256, size:'"$size"',
          depends:$depends, tags:$tags }')"
 
-    # push into both keys (compat)
-    jq --arg k "$array_key" --argjson item "$item" \
-       '.[$k] += [$item] | .items += [$item]' "$tmp_index" > "${tmp_index}.tmp" && mv "${tmp_index}.tmp" "$tmp_index"
+    # Add item to items array
+    jq --argjson item "$item" '.items += [$item]' "$tmp_index" > "${tmp_index}.tmp" && mv "${tmp_index}.tmp" "$tmp_index"
 
-    echo "packed [$store_name] $id v$version → $zip_name"
+    echo "   ✅ packed [$store_name] $id v$version → $zip_name"
   done
 
   cp "$tmp_index" "$out_index"
-  echo "index → $store_index"
+  local item_count=$(jq -r ".items | length" "$out_index")
+  echo ""
+  echo "✅ Store complete: $store_name"
+  echo "   📊 Total items: $item_count"
+  echo "   📄 Index file: $store_index"
+  echo ""
 }
 
 copy_or_stub_defold_deps() {
@@ -124,28 +246,65 @@ copy_or_stub_defold_deps() {
 }
 
 # ---------- main ----------
-[[ -f "$SRC_STORES_JSON" ]] || { echo "Missing $SRC_STORES_JSON"; exit 1; }
+echo "╔════════════════════════════════════════════════════════╗"
+echo "║         Defold Asset Store Builder                    ║"
+echo "╚════════════════════════════════════════════════════════╝"
+echo ""
+echo "🔧 Configuration:"
+echo "   ROOT: $ROOT"
+echo "   SRC_STORES_JSON: $SRC_STORES_JSON"
+echo "   ASSETS_ROOT: $ASSETS_ROOT"
+echo "   DIST_DIR: $DIST_DIR"
+echo "   BASE_URL: ${BASE_URL:-<not set>}"
+echo ""
+
+if [[ ! -f "$SRC_STORES_JSON" ]]; then
+  echo "❌ ERROR: Missing $SRC_STORES_JSON"
+  echo "   Looking for: $SRC_STORES_JSON"
+  echo "   Current dir: $(pwd)"
+  ls -la "$ROOT/" 2>/dev/null || true
+  exit 1
+fi
+
+echo "✅ Found stores.json"
+echo ""
 
 # Build per-store indices
-mapfile -t store_objs < <(jq -c '.stores[]' "$SRC_STORES_JSON")
+store_objs=()
+while IFS= read -r line; do
+  store_objs+=("$line")
+done < <(jq -c '.stores[]' "$SRC_STORES_JSON")
+
+echo "📚 Processing ${#store_objs[@]} store(s)..."
+echo ""
+
 for s in "${store_objs[@]}"; do
   name="$(jq -r '.name' <<<"$s")"
   type="$(jq -r '.type' <<<"$s")"
   index="$(jq -r '.index' <<<"$s")"
-  folder="$(jq -r '.folder // empty' <<<"$s")"
+  content="$(jq -r '.content // empty' <<<"$s")"
 
   case "$type" in
     folder)
-      if [[ -z "$folder" ]]; then echo "Store '$name' missing 'folder'"; exit 1; fi
-      pack_folder_store "$name" "$index" "$folder"
+      if [[ -z "$content" ]]; then
+        echo "❌ ERROR: Store '$name' missing 'content'"
+        exit 1
+      fi
+      pack_folder_store "$name" "$index" "$content"
       ;;
     defold-dependencies)
       copy_or_stub_defold_deps "$name" "$index"
       ;;
     *)
-      echo "Unknown store type: $type (store '$name')"; exit 1;;
+      echo "❌ ERROR: Unknown store type: $type (store '$name')"
+      exit 1
+      ;;
   esac
 done
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📝 Writing root stores.json..."
 
 # Write *published* root stores.json with absolute index URLs
 updated_at="$(date -u +%FT%TZ)"
@@ -157,4 +316,20 @@ jq --arg base "$BASE_URL" --arg updated_at "$updated_at" '
   }
 ' "$SRC_STORES_JSON" > "$DIST_DIR/stores.json"
 
-echo "root → dist/stores.json"
+echo "✅ Root index written: dist/stores.json"
+echo ""
+
+echo "╔════════════════════════════════════════════════════════╗"
+echo "║             🎉 Build Complete! 🎉                     ║"
+echo "╚════════════════════════════════════════════════════════╝"
+echo ""
+echo "📦 Artifacts in: $DIST_DIR"
+echo ""
+if [[ -n "$BASE_URL" ]]; then
+  echo "🌐 Published URLs will be at:"
+  echo "   $BASE_URL/stores.json"
+  echo ""
+fi
+echo "Contents of dist:"
+ls -lh "$DIST_DIR/" 2>/dev/null || true
+echo ""
