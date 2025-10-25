@@ -205,6 +205,37 @@ pack_folder_store() {
     echo "   📏 Size: $size bytes"
     echo "   🔗 ZIP URL: $zip_url"
 
+    # Create base64 JSON version
+    local json_zip_name="${zip_name}.json"
+    local json_zip_path="$DIST_DIR/$content_folder/$json_zip_name"
+    local base64_data
+
+    echo "   📦 Creating base64 JSON version: $json_zip_name"
+
+    # Cross-platform base64 encoding
+    if base64 --version 2>&1 | grep -q GNU; then
+      base64_data="$(base64 -w 0 "$zip_path")"  # Linux
+    else
+      base64_data="$(base64 -i "$zip_path")"     # macOS
+    fi
+
+    # Create JSON with metadata
+    jq -n \
+      --arg data "$base64_data" \
+      --arg filename "$zip_name" \
+      --arg size "$size" \
+      '{"data": $data, "filename": $filename, "size": ($size|tonumber)}' \
+      > "$json_zip_path"
+
+    if [[ ! -f "$json_zip_path" ]]; then
+      echo "   ❌ ERROR: Failed to create JSON ZIP at $json_zip_path" >&2
+      exit 1
+    fi
+
+    local json_zip_url="${BASE_URL:+$BASE_URL/}$content_folder/$json_zip_name"
+    echo "   ✅ JSON ZIP created successfully"
+    echo "   🔗 JSON ZIP URL: $json_zip_url"
+
     # Copy manifest JSON to dist
     local manifest_url=""
     local manifest_dist_dir="$DIST_DIR/manifests/$content_folder"
@@ -249,7 +280,7 @@ pack_folder_store() {
       --arg id "$id" --arg version "$version" --arg title "$title" \
       --arg author "$author" --arg description "$description" \
       --arg api "$api_url" --arg author_url "$author_url" \
-      --arg image "$image_url" --arg zip_url "$zip_url" --arg sha256 "$sha256" \
+      --arg image "$image_url" --arg zip_url "$zip_url" --arg json_zip_url "$json_zip_url" --arg sha256 "$sha256" \
       --arg manifest_url "$manifest_url" \
       --argjson depends "$depends" --argjson tags "$tags" \
       '{ id:$id, version:$version, title:$title,
@@ -259,7 +290,7 @@ pack_folder_store() {
          author_url:( $author_url|select(length>0) ),
          image:( $image|select(length>0) ),
          manifest_url:$manifest_url,
-         zip_url:$zip_url, sha256:$sha256, size:'"$size"',
+         zip_url:$zip_url, json_zip_url:$json_zip_url, sha256:$sha256, size:'"$size"',
          depends:$depends, tags:$tags }')"
 
     # Add item to items array
