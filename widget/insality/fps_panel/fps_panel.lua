@@ -6,7 +6,7 @@
 -- Tags: debug, system
 
 local helper = require("druid.helper")
-local mini_graph = require("widget.insality.mini_graph.mini_graph")
+local mini_graph = require("widget.Insality.mini_graph.mini_graph")
 
 ---@class widget.fps_panel: druid.widget
 ---@field root node

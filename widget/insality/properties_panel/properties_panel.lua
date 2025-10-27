@@ -2,13 +2,13 @@ local event = require("event.event")
 
 local color = require("druid.color")
 local helper = require("druid.helper")
-local property_checkbox = require("widget.insality.properties_panel.properties.property_checkbox")
-local property_slider = require("widget.insality.properties_panel.properties.property_slider")
-local property_button = require("widget.insality.properties_panel.properties.property_button")
-local property_input = require("widget.insality.properties_panel.properties.property_input")
-local property_text = require("widget.insality.properties_panel.properties.property_text")
-local property_left_right_selector = require("widget.insality.properties_panel.properties.property_left_right_selector")
-local property_vector3 = require("widget.insality.properties_panel.properties.property_vector3")
+local property_checkbox = require("widget.Insality.properties_panel.properties.property_checkbox")
+local property_slider = require("widget.Insality.properties_panel.properties.property_slider")
+local property_button = require("widget.Insality.properties_panel.properties.property_button")
+local property_input = require("widget.Insality.properties_panel.properties.property_input")
+local property_text = require("widget.Insality.properties_panel.properties.property_text")
+local property_left_right_selector = require("widget.Insality.properties_panel.properties.property_left_right_selector")
+local property_vector3 = require("widget.Insality.properties_panel.properties.property_vector3")
 
 ---@class widget.properties_panel: druid.widget
 ---@field root node
