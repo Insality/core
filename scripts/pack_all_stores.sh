@@ -281,16 +281,16 @@ pack_folder_store() {
       --arg author "$author" --arg description "$description" \
       --arg api "$api_url" --arg author_url "$author_url" \
       --arg image "$image_url" --arg zip_url "$zip_url" --arg json_zip_url "$json_zip_url" --arg sha256 "$sha256" \
-      --arg manifest_url "$manifest_url" \
+      --arg manifest_url "$manifest_url" --arg size "$size" \
       --argjson depends "$depends" --argjson tags "$tags" \
       '{ id:$id, version:$version, title:$title,
-         author:( $author|select(length>0) ),
-         description:( $description|select(length>0) ),
-         api:( $api|select(length>0) ),
-         author_url:( $author_url|select(length>0) ),
-         image:( $image|select(length>0) ),
+         author:(if $author == "" then null else $author end),
+         description:(if $description == "" then null else $description end),
+         api:(if $api == "" then null else $api end),
+         author_url:(if $author_url == "" then null else $author_url end),
+         image:(if $image == "" then null else $image end),
          manifest_url:$manifest_url,
-         zip_url:$zip_url, json_zip_url:$json_zip_url, sha256:$sha256, size:'"$size"',
+         zip_url:$zip_url, json_zip_url:$json_zip_url, sha256:$sha256, size:($size|tonumber),
          depends:$depends, tags:$tags }')"
 
     # Add item to items array
