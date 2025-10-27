@@ -11,7 +11,6 @@
 	"tags": ["debug", "system"],
 	"content": [
 		"fps_panel.gui",
-		"fps_panel.lua",
-		"assets"
+		"fps_panel.lua"
 	]
 }

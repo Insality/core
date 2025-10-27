@@ -1,0 +1,14 @@
+{
+	"author": "NaakkaDev",
+	"id": "navigation_handler",
+	"version": 1,
+	"title": "Navigation Handler",
+	"description": "Widget to handle navigation with keyboard and gamepad",
+	"image": "navigation_handler.png",
+	"api": "navigation_handler.md",
+	"author_url": "https://github.com/NaakkaDev",
+	"tags": ["input"],
+	"content": [
+		"navigation_handler.lua"
+	]
+}
