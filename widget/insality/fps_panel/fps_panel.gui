@@ -29,15 +29,9 @@ nodes {
   template: "/druid/widget/mini_graph/mini_graph.gui"
 }
 nodes {
-  color {
-    x: 0.173
-    y: 0.184
-    z: 0.204
-  }
   type: TYPE_BOX
   id: "mini_graph/root"
   parent: "mini_graph"
-  overridden_fields: 5
   template_node_child: true
 }
 nodes {
@@ -48,10 +42,8 @@ nodes {
 }
 nodes {
   type: TYPE_TEXT
-  text: "FPS"
   id: "mini_graph/text_header"
   parent: "mini_graph/header"
-  overridden_fields: 8
   template_node_child: true
 }
 nodes {
@@ -67,27 +59,15 @@ nodes {
   template_node_child: true
 }
 nodes {
-  color {
-    x: 0.525
-    y: 0.525
-    z: 0.525
-  }
   type: TYPE_BOX
   id: "mini_graph/prefab_line"
   parent: "mini_graph/content"
-  overridden_fields: 5
   template_node_child: true
 }
 nodes {
-  color {
-    x: 0.957
-    y: 0.608
-    z: 0.608
-  }
   type: TYPE_BOX
   id: "mini_graph/color_low"
   parent: "mini_graph/content"
-  overridden_fields: 5
   template_node_child: true
 }
 nodes {

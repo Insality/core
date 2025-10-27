@@ -1,0 +1,25 @@
+[bootstrap]
+main_collection = /widget/Insality/color_picker/example/example_color_picker.collectionc
+
+[script]
+shared_state = 1
+
+[display]
+width = 1920
+height = 1080
+high_dpi = 1
+
+[android]
+input_method = HiddenInputField
+
+[html5]
+scale_mode = stretch
+
+[project]
+title = Core
+dependencies#0 = https://github.com/Insality/druid/archive/refs/heads/develop.zip
+dependencies#1 = https://github.com/Insality/defold-event/archive/refs/tags/13.zip
+
+[input]
+game_binding = /builtins/input/all.input_bindingc
+

@@ -128,60 +128,33 @@ nodes {
   template: "/druid/custom/rich_input/rich_input.gui"
 }
 nodes {
-  size {
-    x: 50.0
-    y: 40.0
-  }
   type: TYPE_BOX
   id: "rich_input_x/root"
   parent: "rich_input_x"
-  overridden_fields: 4
   template_node_child: true
 }
 nodes {
-  size {
-    x: 50.0
-    y: 40.0
-  }
   type: TYPE_BOX
   id: "rich_input_x/button"
   parent: "rich_input_x/root"
-  overridden_fields: 4
   template_node_child: true
 }
 nodes {
-  size {
-    x: 70.0
-    y: 50.0
-  }
   type: TYPE_TEXT
   id: "rich_input_x/placeholder_text"
   parent: "rich_input_x/root"
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
 }
 nodes {
-  size {
-    x: 70.0
-    y: 50.0
-  }
   type: TYPE_TEXT
-  text: "20.0"
   id: "rich_input_x/input_text"
   parent: "rich_input_x/root"
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
 }
 nodes {
-  position {
-    x: 18.0
-  }
   type: TYPE_BOX
   id: "rich_input_x/cursor_node"
   parent: "rich_input_x/root"
-  overridden_fields: 1
   template_node_child: true
 }
 nodes {
@@ -265,60 +238,33 @@ nodes {
   template: "/druid/custom/rich_input/rich_input.gui"
 }
 nodes {
-  size {
-    x: 50.0
-    y: 40.0
-  }
   type: TYPE_BOX
   id: "rich_input_y/root"
   parent: "rich_input_y"
-  overridden_fields: 4
   template_node_child: true
 }
 nodes {
-  size {
-    x: 50.0
-    y: 40.0
-  }
   type: TYPE_BOX
   id: "rich_input_y/button"
   parent: "rich_input_y/root"
-  overridden_fields: 4
   template_node_child: true
 }
 nodes {
-  size {
-    x: 70.0
-    y: 50.0
-  }
   type: TYPE_TEXT
   id: "rich_input_y/placeholder_text"
   parent: "rich_input_y/root"
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
 }
 nodes {
-  size {
-    x: 70.0
-    y: 50.0
-  }
   type: TYPE_TEXT
-  text: "20.0"
   id: "rich_input_y/input_text"
   parent: "rich_input_y/root"
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
 }
 nodes {
-  position {
-    x: 18.0
-  }
   type: TYPE_BOX
   id: "rich_input_y/cursor_node"
   parent: "rich_input_y/root"
-  overridden_fields: 1
   template_node_child: true
 }
 nodes {
@@ -402,60 +348,33 @@ nodes {
   template: "/druid/custom/rich_input/rich_input.gui"
 }
 nodes {
-  size {
-    x: 50.0
-    y: 40.0
-  }
   type: TYPE_BOX
   id: "rich_input_z/root"
   parent: "rich_input_z"
-  overridden_fields: 4
   template_node_child: true
 }
 nodes {
-  size {
-    x: 50.0
-    y: 40.0
-  }
   type: TYPE_BOX
   id: "rich_input_z/button"
   parent: "rich_input_z/root"
-  overridden_fields: 4
   template_node_child: true
 }
 nodes {
-  size {
-    x: 70.0
-    y: 50.0
-  }
   type: TYPE_TEXT
   id: "rich_input_z/placeholder_text"
   parent: "rich_input_z/root"
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
 }
 nodes {
-  size {
-    x: 70.0
-    y: 50.0
-  }
   type: TYPE_TEXT
-  text: "20.0"
   id: "rich_input_z/input_text"
   parent: "rich_input_z/root"
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
 }
 nodes {
-  position {
-    x: 18.0
-  }
   type: TYPE_BOX
   id: "rich_input_z/cursor_node"
   parent: "rich_input_z/root"
-  overridden_fields: 1
   template_node_child: true
 }
 nodes {

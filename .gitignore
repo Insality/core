@@ -31,3 +31,8 @@ Temporary Items
 *.swo
 .vscode/
 .idea/
+/.editor_settings
+/.internal
+/build
+
+doc.json
