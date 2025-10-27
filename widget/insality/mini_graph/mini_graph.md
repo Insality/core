@@ -1,5 +1,7 @@
 # widget.mini_graph API
 
+![Mini Graph](mini_graph.png)
+
 > at widget/insality/mini_graph/mini_graph.lua
 
 Widget to display a several lines with different height in a row

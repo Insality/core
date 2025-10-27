@@ -1,5 +1,7 @@
 # widget.fps_panel API
 
+![FPS Panel](fps_panel.png)
+
 > at widget/insality/fps_panel/fps_panel.lua
 
 ## Functions

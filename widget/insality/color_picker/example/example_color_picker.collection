@@ -1,0 +1,10 @@
+name: "example_color_picker"
+scale_along_z: 0
+embedded_instances {
+  id: "go"
+  data: "components {\n"
+  "  id: \"example_color_picker\"\n"
+  "  component: \"/widget/Insality/color_picker/example/example_color_picker.gui\"\n"
+  "}\n"
+  ""
+}

@@ -1,0 +1,453 @@
+script: "/widget/Insality/color_picker/example/example_color_picker.gui_script"
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker"
+  inherit_alpha: true
+  template: "/widget/Insality/color_picker/color_picker.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/root"
+  parent: "color_picker"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/anchor_NW"
+  parent: "color_picker/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/rect_color_picker"
+  parent: "color_picker/anchor_NW"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rect_color_picker/root"
+  parent: "color_picker/rect_color_picker"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rect_color_picker/background_white"
+  parent: "color_picker/rect_color_picker/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rect_color_picker/color_node"
+  parent: "color_picker/rect_color_picker/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rect_color_picker/shadow_node"
+  parent: "color_picker/rect_color_picker/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rect_color_picker/drag_zone"
+  parent: "color_picker/rect_color_picker/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rect_color_picker/slider_pin"
+  parent: "color_picker/rect_color_picker/drag_zone"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/anchor_NE"
+  parent: "color_picker/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/slider_color_1"
+  parent: "color_picker/anchor_NE"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_1/root"
+  parent: "color_picker/slider_color_1"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_1/text_slider_label"
+  parent: "color_picker/slider_color_1/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_1/slider"
+  parent: "color_picker/slider_color_1/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_1/panel_color"
+  parent: "color_picker/slider_color_1/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_1/panel_gradient"
+  parent: "color_picker/slider_color_1/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_1/slider_pin"
+  parent: "color_picker/slider_color_1/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/slider_color_1/rich_input"
+  parent: "color_picker/slider_color_1/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_1/rich_input/root"
+  parent: "color_picker/slider_color_1/rich_input"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_1/rich_input/button"
+  parent: "color_picker/slider_color_1/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_1/rich_input/placeholder_text"
+  parent: "color_picker/slider_color_1/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_1/rich_input/input_text"
+  parent: "color_picker/slider_color_1/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_1/rich_input/cursor_node"
+  parent: "color_picker/slider_color_1/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_1/rich_input/cursor_text"
+  parent: "color_picker/slider_color_1/rich_input/cursor_node"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/slider_color_2"
+  parent: "color_picker/anchor_NE"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_2/root"
+  parent: "color_picker/slider_color_2"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_2/text_slider_label"
+  parent: "color_picker/slider_color_2/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_2/slider"
+  parent: "color_picker/slider_color_2/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_2/panel_color"
+  parent: "color_picker/slider_color_2/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_2/panel_gradient"
+  parent: "color_picker/slider_color_2/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_2/slider_pin"
+  parent: "color_picker/slider_color_2/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/slider_color_2/rich_input"
+  parent: "color_picker/slider_color_2/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_2/rich_input/root"
+  parent: "color_picker/slider_color_2/rich_input"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_2/rich_input/button"
+  parent: "color_picker/slider_color_2/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_2/rich_input/placeholder_text"
+  parent: "color_picker/slider_color_2/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_2/rich_input/input_text"
+  parent: "color_picker/slider_color_2/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_2/rich_input/cursor_node"
+  parent: "color_picker/slider_color_2/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_2/rich_input/cursor_text"
+  parent: "color_picker/slider_color_2/rich_input/cursor_node"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/slider_color_3"
+  parent: "color_picker/anchor_NE"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_3/root"
+  parent: "color_picker/slider_color_3"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_3/text_slider_label"
+  parent: "color_picker/slider_color_3/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_3/slider"
+  parent: "color_picker/slider_color_3/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_3/panel_color"
+  parent: "color_picker/slider_color_3/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_3/panel_gradient"
+  parent: "color_picker/slider_color_3/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_3/slider_pin"
+  parent: "color_picker/slider_color_3/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/slider_color_3/rich_input"
+  parent: "color_picker/slider_color_3/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_3/rich_input/root"
+  parent: "color_picker/slider_color_3/rich_input"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_3/rich_input/button"
+  parent: "color_picker/slider_color_3/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_3/rich_input/placeholder_text"
+  parent: "color_picker/slider_color_3/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_3/rich_input/input_text"
+  parent: "color_picker/slider_color_3/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_3/rich_input/cursor_node"
+  parent: "color_picker/slider_color_3/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_3/rich_input/cursor_text"
+  parent: "color_picker/slider_color_3/rich_input/cursor_node"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/slider_color_opacity"
+  parent: "color_picker/anchor_NE"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_opacity/root"
+  parent: "color_picker/slider_color_opacity"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_opacity/text_slider_label"
+  parent: "color_picker/slider_color_opacity/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_opacity/slider"
+  parent: "color_picker/slider_color_opacity/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_opacity/panel_color"
+  parent: "color_picker/slider_color_opacity/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_opacity/panel_gradient"
+  parent: "color_picker/slider_color_opacity/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_opacity/slider_pin"
+  parent: "color_picker/slider_color_opacity/slider"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/slider_color_opacity/rich_input"
+  parent: "color_picker/slider_color_opacity/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_opacity/rich_input/root"
+  parent: "color_picker/slider_color_opacity/rich_input"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_opacity/rich_input/button"
+  parent: "color_picker/slider_color_opacity/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_opacity/rich_input/placeholder_text"
+  parent: "color_picker/slider_color_opacity/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_opacity/rich_input/input_text"
+  parent: "color_picker/slider_color_opacity/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/slider_color_opacity/rich_input/cursor_node"
+  parent: "color_picker/slider_color_opacity/rich_input/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/slider_color_opacity/rich_input/cursor_text"
+  parent: "color_picker/slider_color_opacity/rich_input/cursor_node"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "color_picker/rich_input_hex"
+  parent: "color_picker/anchor_NE"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rich_input_hex/root"
+  parent: "color_picker/rich_input_hex"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rich_input_hex/button"
+  parent: "color_picker/rich_input_hex/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/rich_input_hex/placeholder_text"
+  parent: "color_picker/rich_input_hex/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/rich_input_hex/input_text"
+  parent: "color_picker/rich_input_hex/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "color_picker/rich_input_hex/cursor_node"
+  parent: "color_picker/rich_input_hex/root"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/rich_input_hex/cursor_text"
+  parent: "color_picker/rich_input_hex/cursor_node"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "color_picker/text_hex"
+  parent: "color_picker/anchor_NE"
+  template_node_child: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
