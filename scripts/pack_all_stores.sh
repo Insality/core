@@ -116,6 +116,7 @@ pack_folder_store() {
     description="$(jq -r '.description // empty' "$manifest")"
     api="$(jq -r '.api // empty' "$manifest")"
     author_url="$(jq -r '.author_url // empty' "$manifest")"
+    example_url="$(jq -r '.example_url // empty' "$manifest")"
     image_rel="$(jq -r '.image // empty' "$manifest")"
     depends="$(jq -c '.depends // []' "$manifest")"
     tags="$(jq -c '.tags // []' "$manifest")"
@@ -255,6 +256,7 @@ pack_folder_store() {
       echo "   🔗 Image URL: $image_url"
     else
       echo "   ℹ️  No image specified or found"
+      image_url=""  # Ensure image_url is empty when no image
     fi
 
     # Generate GitHub URL for API documentation
@@ -279,7 +281,7 @@ pack_folder_store() {
     item="$(jq -n \
       --arg id "$id" --arg version "$version" --arg title "$title" \
       --arg author "$author" --arg description "$description" \
-      --arg api "$api_url" --arg author_url "$author_url" \
+      --arg api "$api_url" --arg author_url "$author_url" --arg example_url "$example_url" \
       --arg image "$image_url" --arg zip_url "$zip_url" --arg json_zip_url "$json_zip_url" --arg sha256 "$sha256" \
       --arg manifest_url "$manifest_url" --arg size "$size" \
       --argjson depends "$depends" --argjson tags "$tags" \
@@ -289,6 +291,7 @@ pack_folder_store() {
          api:(if $api == "" then null else $api end),
          author_url:(if $author_url == "" then null else $author_url end),
          image:(if $image == "" then null else $image end),
+         example_url:(if $example_url == "" then null else $example_url end),
          manifest_url:$manifest_url,
          zip_url:$zip_url, json_zip_url:$json_zip_url, sha256:$sha256, size:($size|tonumber),
          depends:$depends, tags:$tags }')"

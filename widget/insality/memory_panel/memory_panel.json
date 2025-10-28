@@ -6,6 +6,7 @@
 	"description": "Shows current memory usage and graph of the last 3 seconds of performance",
 	"image": "memory_panel.png",
 	"api": "memory_panel.md",
+	"example_url": "https://insality.github.io/druid/?example=ui_example_widget_memory_panel",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
 	"content": [
