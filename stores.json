@@ -1,22 +1,11 @@
 {
 	"stores": [
 		{
-			"name": "[Defold] Assets",
-			"type": "defold-dependencies",
-			"index": "defold_asset_store.json",
-			"content": "assets"
-		},
-		{
 			"name": "[Druid] Widgets",
 			"type": "folder",
 			"index": "druid_widget_store.json",
+			"docs": "druid_widget_store.md",
 			"content": "widget"
-		},
-		{
-			"name": "[Defold] Particles",
-			"type": "folder",
-			"index": "defold_particle_store.json",
-			"content": "particle"
 		}
 	]
 }
