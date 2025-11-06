@@ -6,3 +6,4 @@ In this Druid Widget Store you can find all the widgets that are available and i
 ## Open Druid Widget Store
 
 Select `Edit` -> `[Druid] Widget Store` in the menu. Ensure the Druid library is installed and fetched.
+

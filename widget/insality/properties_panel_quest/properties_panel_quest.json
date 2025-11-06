@@ -1,0 +1,15 @@
+{
+	"author": "Insality",
+	"id": "properties_panel_quest",
+	"version": 1,
+	"depends": [ "Insality:properties_panel@1" ],
+	"title": "Properties Panel Quest",
+	"description": "Quest debug page for Properties Panel",
+	"author_url": "https://github.com/Insality",
+	"tags": ["debug", "GUI"],
+	"content": [
+		"quest_debug_page.lua",
+		"properties_panel"
+	]
+}
+

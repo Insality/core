@@ -1,0 +1,14 @@
+{
+	"author": "Insality",
+	"id": "properties_panel_token",
+	"version": 1,
+	"depends": [ "Insality:properties_panel@1" ],
+	"title": "Properties Panel Token",
+	"description": "Token debug page for Properties Panel",
+	"author_url": "https://github.com/Insality",
+	"tags": ["debug", "GUI"],
+	"content": [
+		"token_debug_page.lua"
+	]
+}
+

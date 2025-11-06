@@ -4,7 +4,6 @@
 			"name": "[Druid] Widgets",
 			"type": "folder",
 			"index": "druid_widget_store.json",
-			"docs": "druid_widget_store.md",
 			"content": "widget"
 		}
 	]

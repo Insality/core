@@ -1,0 +1,15 @@
+{
+	"author": "Insality",
+	"id": "properties_panel_decore",
+	"version": 1,
+	"depends": [ "Insality:properties_panel@1" ],
+	"title": "Properties Panel Decore",
+	"description": "Decore debug page for Properties Panel",
+	"author_url": "https://github.com/Insality",
+	"tags": ["debug", "GUI"],
+	"content": [
+		"decore_debug_page.lua",
+		"properties_panel"
+	]
+}
+
