@@ -1,11 +1,11 @@
 local component = require("druid.component")
 
----@class widget.image: druid.component
+---@class widget.external_image: druid.component
 ---@field root node
 ---@field private size vector3
 ---@field private texture_id string
 ---@field private adjust_mode number
-local M = component.create("druid.image")
+local M = component.create("druid.external_image")
 
 local REFERENCE_COUNTER = {}
 local TEXTURE_DATA = {}
@@ -184,3 +184,4 @@ end
 
 
 return M
+

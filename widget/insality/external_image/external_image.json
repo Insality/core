@@ -1,0 +1,15 @@
+{
+	"author": "Insality",
+	"id": "external_image",
+	"version": 1,
+	"title": "External Image",
+	"description": "Allows to load and display an image from external sources (resource path, absolute path or URL)",
+	"image": "external_image.png",
+	"api": "external_image.md",
+	"author_url": "https://github.com/Insality",
+	"tags": ["GUI"],
+	"content": [
+		"external_image.lua"
+	]
+}
+

@@ -1,0 +1,15 @@
+{
+	"author": "Insality",
+	"id": "on_screen_control",
+	"version": 1,
+	"title": "On Screen Control",
+	"description": "Virtual gamepad widget with joystick and action button for mobile devices. Supports multitouch and provides movement events with normalized values",
+	"api": "on_screen_control.md",
+	"author_url": "https://github.com/Insality",
+	"tags": ["GUI", "input", "gamepad"],
+	"content": [
+		"on_screen_control.gui",
+		"on_screen_control.lua"
+	]
+}
+

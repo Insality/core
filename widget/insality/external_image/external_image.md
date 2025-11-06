@@ -1,6 +1,6 @@
-# widget.image API
+# widget.external_image API
 
-> at widget/insality/image/image.lua
+> at widget/insality/external_image/external_image.lua
 
 ## Functions
 
@@ -20,7 +20,7 @@
 
 ---
 ```lua
-image:init(node_or_node_id)
+external_image:init(node_or_node_id)
 ```
 
 - **Parameters:**
@@ -30,14 +30,14 @@ image:init(node_or_node_id)
 
 ---
 ```lua
-image:on_remove()
+external_image:on_remove()
 ```
 
 ### load_from_resource_path
 
 ---
 ```lua
-image:load_from_resource_path([resource_path])
+external_image:load_from_resource_path([resource_path])
 ```
 
 - **Parameters:**
@@ -47,7 +47,7 @@ image:load_from_resource_path([resource_path])
 
 ---
 ```lua
-image:load_from_absolute_path([absolute_path])
+external_image:load_from_absolute_path([absolute_path])
 ```
 
 - **Parameters:**
@@ -60,7 +60,7 @@ image:load_from_absolute_path([absolute_path])
 
 ---
 ```lua
-image:load_from_url([url])
+external_image:load_from_url([url])
 ```
 
 - **Parameters:**
