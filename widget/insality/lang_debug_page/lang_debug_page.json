@@ -1,10 +1,11 @@
 {
 	"author": "Insality",
-	"id": "properties_panel_lang",
+	"id": "lang_debug_page",
 	"version": 1,
 	"depends": [ "Insality:properties_panel@1" ],
-	"title": "Properties Panel Lang",
+	"title": "Lang Debug Page",
 	"description": "Lang debug page for Properties Panel",
+	"api": "lang_debug_page.md",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "GUI"],
 	"content": [

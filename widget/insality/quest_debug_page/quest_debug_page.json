@@ -1,14 +1,15 @@
 {
 	"author": "Insality",
-	"id": "properties_panel_saver",
+	"id": "quest_debug_page",
 	"version": 1,
 	"depends": [ "Insality:properties_panel@1" ],
-	"title": "Properties Panel Saver",
-	"description": "Saver debug page for Properties Panel",
+	"title": "Quest Debug Page",
+	"description": "Quest debug page for Properties Panel",
+	"api": "quest_debug_page.md",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "GUI"],
 	"content": [
-		"saver_debug_page.lua",
+		"quest_debug_page.lua",
 		"properties_panel"
 	]
 }

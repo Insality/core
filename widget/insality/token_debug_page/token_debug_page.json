@@ -1,10 +1,11 @@
 {
 	"author": "Insality",
-	"id": "properties_panel_token",
+	"id": "token_debug_page",
 	"version": 1,
 	"depends": [ "Insality:properties_panel@1" ],
-	"title": "Properties Panel Token",
+	"title": "Token Debug Page",
 	"description": "Token debug page for Properties Panel",
+	"api": "token_debug_page.md",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "GUI"],
 	"content": [
