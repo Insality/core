@@ -70,50 +70,22 @@ build_example_if_needed() {
 
   echo "   🎮 Building example for v$version..."
 
-  # Extract filename from example path
-  local example_filename; example_filename="$(basename "$example_path")"
-  
-  # Try multiple locations to find the example collection
-  # 1. Try the path from manifest (with original case)
+  # Use the path from JSON directly (e.g., "/widget/Insality/on_screen_joystick/example/example_on_screen_joystick.collection")
+  # Check if collection file exists at ASSETS_ROOT + example_path
   local example_path_clean="${example_path#/}"
   local example_collection_path="$ASSETS_ROOT/$example_path_clean"
-  
-  # 2. If not found, try relative to asset_dir (handles case sensitivity)
-  if [[ ! -f "$example_collection_path" ]]; then
-    # Try: asset_dir/../example/filename
-    if [[ -f "$asset_dir/../example/$example_filename" ]]; then
-      example_collection_path="$asset_dir/../example/$example_filename"
-    # Try: asset_dir/example/filename
-    elif [[ -f "$asset_dir/example/$example_filename" ]]; then
-      example_collection_path="$asset_dir/example/$example_filename"
-    # Try case-insensitive search in parent directory
-    else
-      local parent_dir; parent_dir="$(dirname "$asset_dir")"
-      local found_file; found_file="$(find "$parent_dir" -type f -iname "$example_filename" 2>/dev/null | head -1)"
-      if [[ -n "$found_file" && -f "$found_file" ]]; then
-        example_collection_path="$found_file"
-      fi
-    fi
-  fi
-  
+
   # Check if collection file exists
   if [[ ! -f "$example_collection_path" ]]; then
-    echo "   ⚠️  Example collection not found: $example_filename"
-    echo "   💡 Searched in:"
-    echo "      - $ASSETS_ROOT/$example_path_clean"
-    echo "      - $asset_dir/../example/"
-    echo "      - $asset_dir/example/"
+    echo "   ⚠️  Example collection not found: $example_path"
+    echo "   💡 Expected at: $example_collection_path"
     echo ""
     return
   fi
-  
+
   echo "   📍 Found example at: $example_collection_path"
 
-  # Get directory of example collection
-  local example_collection_dir; example_collection_dir="$(dirname "$example_collection_path")"
-  local example_collection_name; example_collection_name="$(basename "$example_collection_path" .collection)"
-  
-  # Collection path for INI should be with .collectionc extension (compiled)
+  # Use the same path from JSON, just replace .collection with .collectionc for INI
   local collection_path_for_ini="${example_path%.collection}.collectionc"
 
   # Create temporary INI file
@@ -176,7 +148,7 @@ EOF
       # Deployer typically builds to dist/bundle/version/Project_version_mode_html/
       # Search for index.html in common deployer output locations
       local found_html=""
-      
+
       # Check specific known locations first
       if [[ -f "$ROOT/build/default_html5/index.html" ]]; then
         found_html="$ROOT/build/default_html5/index.html"
@@ -186,13 +158,13 @@ EOF
         # Search in dist/bundle for HTML5 builds
         found_html="$(find "$ROOT/dist/bundle" -name "index.html" -type f 2>/dev/null | head -1)"
       fi
-      
+
       if [[ -n "$found_html" && -f "$found_html" ]]; then
         echo "   📦 Found example in: $found_html"
         local src_dir; src_dir="$(dirname "$found_html")"
         # Copy all files from found location to output directory
         cp -r "$src_dir"/* "$example_output_dir/" 2>/dev/null || true
-        
+
         if [[ -f "$example_output_dir/index.html" ]]; then
           echo "   ✅ Example built successfully (moved to correct location)"
           echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"

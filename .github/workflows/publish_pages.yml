@@ -92,8 +92,12 @@ jobs:
                 done
 
                 # Download examples (only if they don't exist locally)
+                # Examples are cached by version: author:id@version
+                # Format: dist/examples/author:id@version/index.html
                 # If example_url exists in index, it means example was already built and published
-                # We only need to restore it if it's missing locally (e.g., first run or after cleanup)
+                # We only restore index.html as a marker - pack_all_stores.sh checks for it
+                # and skips rebuilding if it exists. If example files are incomplete,
+                # the example will be rebuilt automatically.
                 jq -r '.items[]?.example_url // empty' "/tmp/$store_index" | while read example_url; do
                   if [[ -n "$example_url" && "$example_url" != "null" ]]; then
                     # Extract example directory path from URL
@@ -101,14 +105,20 @@ jobs:
                     example_path=$(echo "$example_url" | sed "s|$BASE_URL/||" | sed "s|/index.html$||")
                     if [[ -n "$example_path" ]]; then
                       # If example already exists locally, skip downloading
-                      # The example will be built by pack_all_stores.sh if needed
                       if [[ -f "dist/$example_path/index.html" ]]; then
-                        echo "  ✅ EXM: $example_path (already exists locally, skipping download)"
+                        echo "  ✅ EXM: $example_path (already exists locally, skipping)"
+                      else
+                        # Create directory and download index.html as cache marker
+                        # pack_all_stores.sh will check for index.html and skip rebuilding if it exists
+                        mkdir -p "dist/$example_path"
+                        if curl -f -s "$example_url" -o "dist/$example_path/index.html" 2>/dev/null; then
+                          echo "  ✅ EXM: $example_path (cache marker restored from GitHub Pages)"
+                          echo "         Note: Example files will be restored from GitHub Pages on deploy"
+                          echo "         or rebuilt by pack_all_stores.sh if incomplete"
+                        else
+                          echo "  ℹ️  EXM: $example_path (not found on GitHub Pages, will be built)"
+                        fi
                       fi
-                      # Note: We don't download examples here because:
-                      # 1. If example_url exists in index, it's already published on GitHub Pages
-                      # 2. pack_all_stores.sh will build it if needed (if files are missing)
-                      # 3. This avoids unnecessary downloads on every CI run
                     fi
                   fi
                 done
