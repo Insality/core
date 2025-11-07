@@ -101,82 +101,51 @@ EOF
   # Create output directory
   mkdir -p "$example_output_dir"
 
-  # Build HTML using Defold deployer
-  # Check if we're in CI (have deployer) or need to download it
-  local deployer_cmd=""
-  if command -v hbr >/dev/null 2>&1; then
-    deployer_cmd="hbr"
-  else
-    # Download deployer if not available
-    echo "   📥 Downloading Defold deployer..."
-    local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
-    local deployer_script; deployer_script="$(mktemp)"
-    curl -s "$deployer_url" -o "$deployer_script" || {
-      echo "   ❌ ERROR: Failed to download deployer" >&2
-      rm -f "$tmp_ini" "$deployer_script"
-      echo ""
-      return
-    }
-    chmod +x "$deployer_script"
-    # Install deployer to get hbr command
-    bash "$deployer_script" install >/dev/null 2>&1 || true
-    # Try to use hbr from PATH or directly from deployer
-    if command -v hbr >/dev/null 2>&1; then
-      deployer_cmd="hbr"
-    else
-      # Fallback: use deployer script directly
-      deployer_cmd="bash $deployer_script hbr"
-    fi
-  fi
-
   echo "   🔨 Building HTML..."
   echo "   📍 Working directory: $ROOT"
   echo "   📍 Output directory: $example_output_dir"
   echo "   📍 INI file: $tmp_ini"
 
-  # Build HTML (hbr builds HTML5 version)
+  # Build HTML using deployer (hbr builds HTML5 version)
+  # Deployer builds to dist/bundle/version/Project_version_mode_html/
   # Move INI file to root directory for deployer
   local ini_in_root="$ROOT/$(basename "$tmp_ini")"
   cp "$tmp_ini" "$ini_in_root"
 
-  if (cd "$ROOT" && $deployer_cmd --settings "$(basename "$tmp_ini")" --output "$example_output_dir" 2>&1); then
-    # Check if index.html was created
-    if [[ -f "$example_output_dir/index.html" ]]; then
-      echo "   ✅ Example built successfully"
-      echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
-    else
-      # Deployer typically builds to dist/bundle/version/Project_version_mode_html/
-      # Search for index.html in common deployer output locations
-      local found_html=""
+  # Build using deployer via curl (downloads and runs deployer.sh hbr)
+  local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
+  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings "$(basename "$tmp_ini")" 2>&1); then
+    # Deployer builds to dist/bundle/version/Project_version_mode_html/
+    # Find the built HTML5 bundle
+    local found_html=""
 
-      # Check specific known locations first
-      if [[ -f "$ROOT/build/default_html5/index.html" ]]; then
-        found_html="$ROOT/build/default_html5/index.html"
-      elif [[ -f "$example_output_dir/html5/index.html" ]]; then
-        found_html="$example_output_dir/html5/index.html"
+    # Search in dist/bundle for HTML5 builds (most recent first)
+    found_html="$(find "$ROOT/dist/bundle" -name "index.html" -type f -path "*/_html/*" 2>/dev/null | head -1)"
+
+    # If not found, try other common locations
+    if [[ -z "$found_html" || ! -f "$found_html" ]]; then
+      found_html="$(find "$ROOT/dist/bundle" -name "index.html" -type f 2>/dev/null | head -1)"
+    fi
+
+    if [[ -n "$found_html" && -f "$found_html" ]]; then
+      echo "   📦 Found example build in: $found_html"
+      local src_dir; src_dir="$(dirname "$found_html")"
+
+      # Copy all files from built location to output directory
+      mkdir -p "$example_output_dir"
+      cp -r "$src_dir"/* "$example_output_dir/" 2>/dev/null || true
+
+      if [[ -f "$example_output_dir/index.html" ]]; then
+        echo "   ✅ Example built successfully"
+        echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
       else
-        # Search in dist/bundle for HTML5 builds
-        found_html="$(find "$ROOT/dist/bundle" -name "index.html" -type f 2>/dev/null | head -1)"
-      fi
-
-      if [[ -n "$found_html" && -f "$found_html" ]]; then
-        echo "   📦 Found example in: $found_html"
-        local src_dir; src_dir="$(dirname "$found_html")"
-        # Copy all files from found location to output directory
-        cp -r "$src_dir"/* "$example_output_dir/" 2>/dev/null || true
-
-        if [[ -f "$example_output_dir/index.html" ]]; then
-          echo "   ✅ Example built successfully (moved to correct location)"
-          echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
-        else
-          echo "   ⚠️  Copied files but index.html still not found"
-          echo ""
-        fi
-      else
-        echo "   ⚠️  Build completed but index.html not found in expected locations"
-        echo "   💡 Searched in: $ROOT/dist/bundle, $ROOT/build/default_html5"
+        echo "   ⚠️  Copied files but index.html still not found"
         echo ""
       fi
+    else
+      echo "   ⚠️  Build completed but index.html not found in dist/bundle"
+      echo "   💡 Searched in: $ROOT/dist/bundle"
+      echo ""
     fi
   else
     echo "   ❌ ERROR: Failed to build example" >&2
@@ -185,9 +154,6 @@ EOF
 
   # Cleanup
   rm -f "$tmp_ini" "$ini_in_root"
-  if [[ -n "${deployer_script:-}" && -f "$deployer_script" ]]; then
-    rm -f "$deployer_script"
-  fi
 }
 
 pack_folder_store() {
