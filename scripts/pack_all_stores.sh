@@ -70,17 +70,44 @@ build_example_if_needed() {
 
   echo "   🎮 Building example for v$version..."
 
-  # Convert example path to absolute path
-  # Remove leading slash if present
+  # Extract filename from example path
+  local example_filename; example_filename="$(basename "$example_path")"
+  
+  # Try multiple locations to find the example collection
+  # 1. Try the path from manifest (with original case)
   local example_path_clean="${example_path#/}"
   local example_collection_path="$ASSETS_ROOT/$example_path_clean"
   
+  # 2. If not found, try relative to asset_dir (handles case sensitivity)
+  if [[ ! -f "$example_collection_path" ]]; then
+    # Try: asset_dir/../example/filename
+    if [[ -f "$asset_dir/../example/$example_filename" ]]; then
+      example_collection_path="$asset_dir/../example/$example_filename"
+    # Try: asset_dir/example/filename
+    elif [[ -f "$asset_dir/example/$example_filename" ]]; then
+      example_collection_path="$asset_dir/example/$example_filename"
+    # Try case-insensitive search in parent directory
+    else
+      local parent_dir; parent_dir="$(dirname "$asset_dir")"
+      local found_file; found_file="$(find "$parent_dir" -type f -iname "$example_filename" 2>/dev/null | head -1)"
+      if [[ -n "$found_file" && -f "$found_file" ]]; then
+        example_collection_path="$found_file"
+      fi
+    fi
+  fi
+  
   # Check if collection file exists
   if [[ ! -f "$example_collection_path" ]]; then
-    echo "   ⚠️  Example collection not found: $example_collection_path"
+    echo "   ⚠️  Example collection not found: $example_filename"
+    echo "   💡 Searched in:"
+    echo "      - $ASSETS_ROOT/$example_path_clean"
+    echo "      - $asset_dir/../example/"
+    echo "      - $asset_dir/example/"
     echo ""
     return
   fi
+  
+  echo "   📍 Found example at: $example_collection_path"
 
   # Get directory of example collection
   local example_collection_dir; example_collection_dir="$(dirname "$example_collection_path")"
