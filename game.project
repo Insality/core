@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /widget/Insality/color_picker/example/example_color_picker.collectionc
+main_collection = /widget/Insality/on_screen_joystick/example/example_on_screen_joystick.collectionc
 
 [script]
 shared_state = 1
@@ -14,12 +14,24 @@ input_method = HiddenInputField
 
 [html5]
 scale_mode = stretch
+cssfile = /builtins/manifests/web/dark_theme.css
+show_made_with_defold = 0
+show_fullscreen_button = 0
 
 [project]
 title = Core
+developer = Insality
 dependencies#0 = https://github.com/Insality/druid/archive/refs/heads/develop.zip
 dependencies#1 = https://github.com/Insality/defold-event/archive/refs/tags/13.zip
+dependencies#2 = https://github.com/Insality/decore/archive/refs/tags/2.zip
 
 [input]
 game_binding = /builtins/input/all.input_bindingc
+use_accelerometer = 0
+
+[model]
+max_count = 128
+
+[native_extension]
+app_manifest = /scripts/core.appmanifest
 

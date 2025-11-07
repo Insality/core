@@ -2,9 +2,7 @@ local const = require("druid.const")
 local event = require("event.event")
 local helper = require("druid.helper")
 
----@class widget.on_screen_control: druid.widget
----@field button_action node
----@field on_screen_control node
+---@class widget.on_screen_joystick: druid.widget
 ---@field stick_root node
 ---@field stick_position vector3
 ---@field on_action event @()
@@ -17,20 +15,23 @@ local helper = require("druid.helper")
 local M = {}
 
 local STICK_DISTANCE = 80
+local ALPHA_IDLE = 0.5
+local ALPHA_ACTIVE = 1
 
 
 function M:init()
-	self.button_action = self:get_node("on_screen_button")
-	self.on_screen_control = self:get_node("on_screen_stick/root")
-
-	self.stick_root = self:get_node("on_screen_stick/stick_root")
+	self.root = self:get_node("root")
+	self.content = self:get_node("content")
+	self.stick_root = self:get_node("stick_root")
 	self.stick_position = gui.get_position(self.stick_root)
 
-	self.on_action = event.create()
 	self.on_movement = event.create()
 	self.on_movement_stop = event.create()
 
 	self.is_multitouch = helper.is_multitouch_supported()
+
+	-- Set initial alpha to idle state
+	gui.set_alpha(self.root, ALPHA_IDLE)
 end
 
 
@@ -55,19 +56,24 @@ end
 
 ---@param action action|touch
 function M:process_touch(action)
-	if action.pressed and gui.pick_node(self.button_action, action.x, action.y) then
-		self.on_action:trigger()
-
-		gui.animate(self.button_action, gui.PROP_SCALE, vmath.vector3(1.2), gui.EASING_OUTSINE, 0.1, 0, function()
-			gui.animate(self.button_action, gui.PROP_SCALE, vmath.vector3(1), gui.EASING_INSINE, 0.2, 0.05)
-		end)
-	end
-
-	if gui.pick_node(self.on_screen_control, action.x, action.y) then
-		self._is_stick_drag = action.id or true
-	end
-
 	local is_the_same_touch_id = not action.id or action.id == self._is_stick_drag
+
+	if gui.pick_node(self.root, action.x, action.y) then
+		if not self._is_stick_drag then
+			-- First touch - initialize drag
+			self._is_stick_drag = action.id or true
+			-- Reset stick to center and initialize tracking
+			self.stick_position.x = 0
+			self.stick_position.y = 0
+			self._prev_x = action.x
+			self._prev_y = action.y
+			gui.set_position(self.stick_root, self.stick_position)
+
+			-- Animate alpha to active state when drag starts
+			gui.animate(self.root, "color.w", ALPHA_ACTIVE, gui.EASING_OUTQUAD, 0.2)
+		end
+	end
+
 	if self._is_stick_drag and is_the_same_touch_id then
 		-- action.dx and action.dy are broken inside touches for some reason, manual calculations seems fine
 		local dx = action.x - (self._prev_x or action.x)
@@ -95,6 +101,10 @@ function M:process_touch(action)
 		self._prev_x = nil
 		self._prev_y = nil
 		gui.animate(self.stick_root, gui.PROP_POSITION, self.stick_position, gui.EASING_OUTBACK, 0.3)
+
+		-- Animate alpha back to idle state
+		gui.animate(self.root, "color.w", ALPHA_IDLE, gui.EASING_OUTQUAD, 0.3)
+
 		self.on_movement_stop:trigger()
 	end
 end

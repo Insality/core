@@ -2,7 +2,7 @@ name: publish_pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   workflow_dispatch: {}
 
 permissions:
@@ -19,7 +19,19 @@ jobs:
       - name: install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq zip
+          sudo apt-get install -y jq zip curl wget
+
+      - name: setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: install defold deployer
+        run: |
+          deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
+          curl -s ${deployer_url} | bash -s install
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: compute base url
         id: base
@@ -45,13 +57,17 @@ jobs:
               echo "📂 Processing store: $store_index"
 
               if curl -f -s "$BASE_URL/$store_index" -o "/tmp/$store_index" 2>/dev/null; then
-                # Download ZIPs
+                # Download ZIPs (only if they don't exist locally)
                 jq -r '.items[]?.zip_url // empty' "/tmp/$store_index" | while read zip_url; do
                   if [[ -n "$zip_url" ]]; then
                     zip_path=$(echo "$zip_url" | sed "s|$BASE_URL/||")
-                    mkdir -p "dist/$(dirname "$zip_path")"
-                    echo "  ⬇️  ZIP: $zip_path"
-                    curl -f -s "$zip_url" -o "dist/$zip_path" 2>/dev/null || true
+                    if [[ -f "dist/$zip_path" ]]; then
+                      echo "  ✅ ZIP: $zip_path (already exists, skipping)"
+                    else
+                      mkdir -p "dist/$(dirname "$zip_path")"
+                      echo "  ⬇️  ZIP: $zip_path"
+                      curl -f -s "$zip_url" -o "dist/$zip_path" 2>/dev/null || true
+                    fi
                   fi
                 done
 
@@ -64,7 +80,7 @@ jobs:
                     curl -f -s "$img_url" -o "dist/$img_path" 2>/dev/null || true
                   fi
                 done
-                
+
                 # Download manifests
                 jq -r '.items[]?.manifest_url // empty' "/tmp/$store_index" | while read manifest_url; do
                   if [[ -n "$manifest_url" ]]; then
@@ -72,6 +88,28 @@ jobs:
                     mkdir -p "dist/$(dirname "$manifest_path")"
                     echo "  ⬇️  MNF: $manifest_path"
                     curl -f -s "$manifest_url" -o "dist/$manifest_path" 2>/dev/null || true
+                  fi
+                done
+
+                # Download examples (only if they don't exist locally)
+                # If example_url exists in index, it means example was already built and published
+                # We only need to restore it if it's missing locally (e.g., first run or after cleanup)
+                jq -r '.items[]?.example_url // empty' "/tmp/$store_index" | while read example_url; do
+                  if [[ -n "$example_url" && "$example_url" != "null" ]]; then
+                    # Extract example directory path from URL
+                    # URL format: https://owner.github.io/repo/examples/author:id@version/index.html
+                    example_path=$(echo "$example_url" | sed "s|$BASE_URL/||" | sed "s|/index.html$||")
+                    if [[ -n "$example_path" ]]; then
+                      # If example already exists locally, skip downloading
+                      # The example will be built by pack_all_stores.sh if needed
+                      if [[ -f "dist/$example_path/index.html" ]]; then
+                        echo "  ✅ EXM: $example_path (already exists locally, skipping download)"
+                      fi
+                      # Note: We don't download examples here because:
+                      # 1. If example_url exists in index, it's already published on GitHub Pages
+                      # 2. pack_all_stores.sh will build it if needed (if files are missing)
+                      # 3. This avoids unnecessary downloads on every CI run
+                    fi
                   fi
                 done
               fi

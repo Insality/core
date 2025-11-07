@@ -43,6 +43,154 @@ if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1
   exit 1
 fi
 
+# Build example HTML if needed
+build_example_if_needed() {
+  local example_path="$1"  # Path from manifest, e.g., "/widget/Insality/on_screen_joystick/example/example_on_screen_joystick.collection"
+  local author="$2"
+  local id="$3"
+  local version="$4"
+  local asset_dir="$5"  # Directory where manifest is located
+
+  if [[ -z "$example_path" || "$example_path" == "null" ]]; then
+    echo ""
+    return
+  fi
+
+  # Example output directory: dist/examples/Insality:on_screen_joystick@1/
+  local example_dir_name="${author}:${id}@${version}"
+  local example_output_dir="$DIST_DIR/examples/$example_dir_name"
+  local example_index_file="$example_output_dir/index.html"
+
+  # Check if example already exists for this version
+  if [[ -f "$example_index_file" ]]; then
+    echo "   ✅ Example already built for v$version, skipping"
+    echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
+    return
+  fi
+
+  echo "   🎮 Building example for v$version..."
+
+  # Convert example path to absolute path
+  # Remove leading slash if present
+  local example_path_clean="${example_path#/}"
+  local example_collection_path="$ASSETS_ROOT/$example_path_clean"
+  
+  # Check if collection file exists
+  if [[ ! -f "$example_collection_path" ]]; then
+    echo "   ⚠️  Example collection not found: $example_collection_path"
+    echo ""
+    return
+  fi
+
+  # Get directory of example collection
+  local example_collection_dir; example_collection_dir="$(dirname "$example_collection_path")"
+  local example_collection_name; example_collection_name="$(basename "$example_collection_path" .collection)"
+  
+  # Collection path for INI should be with .collectionc extension (compiled)
+  local collection_path_for_ini="${example_path%.collection}.collectionc"
+
+  # Create temporary INI file
+  local tmp_ini; tmp_ini="$(mktemp)"
+  cat > "$tmp_ini" <<EOF
+[bootstrap]
+main_collection = $collection_path_for_ini
+EOF
+
+  echo "   📝 Created INI file: $tmp_ini"
+  echo "   📋 Collection path: $collection_path_for_ini"
+
+  # Create output directory
+  mkdir -p "$example_output_dir"
+
+  # Build HTML using Defold deployer
+  # Check if we're in CI (have deployer) or need to download it
+  local deployer_cmd=""
+  if command -v hbr >/dev/null 2>&1; then
+    deployer_cmd="hbr"
+  else
+    # Download deployer if not available
+    echo "   📥 Downloading Defold deployer..."
+    local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
+    local deployer_script; deployer_script="$(mktemp)"
+    curl -s "$deployer_url" -o "$deployer_script" || {
+      echo "   ❌ ERROR: Failed to download deployer" >&2
+      rm -f "$tmp_ini" "$deployer_script"
+      echo ""
+      return
+    }
+    chmod +x "$deployer_script"
+    # Install deployer to get hbr command
+    bash "$deployer_script" install >/dev/null 2>&1 || true
+    # Try to use hbr from PATH or directly from deployer
+    if command -v hbr >/dev/null 2>&1; then
+      deployer_cmd="hbr"
+    else
+      # Fallback: use deployer script directly
+      deployer_cmd="bash $deployer_script hbr"
+    fi
+  fi
+
+  echo "   🔨 Building HTML..."
+  echo "   📍 Working directory: $ROOT"
+  echo "   📍 Output directory: $example_output_dir"
+  echo "   📍 INI file: $tmp_ini"
+
+  # Build HTML (hbr builds HTML5 version)
+  # Move INI file to root directory for deployer
+  local ini_in_root="$ROOT/$(basename "$tmp_ini")"
+  cp "$tmp_ini" "$ini_in_root"
+
+  if (cd "$ROOT" && $deployer_cmd --settings "$(basename "$tmp_ini")" --output "$example_output_dir" 2>&1); then
+    # Check if index.html was created
+    if [[ -f "$example_output_dir/index.html" ]]; then
+      echo "   ✅ Example built successfully"
+      echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
+    else
+      # Deployer typically builds to dist/bundle/version/Project_version_mode_html/
+      # Search for index.html in common deployer output locations
+      local found_html=""
+      
+      # Check specific known locations first
+      if [[ -f "$ROOT/build/default_html5/index.html" ]]; then
+        found_html="$ROOT/build/default_html5/index.html"
+      elif [[ -f "$example_output_dir/html5/index.html" ]]; then
+        found_html="$example_output_dir/html5/index.html"
+      else
+        # Search in dist/bundle for HTML5 builds
+        found_html="$(find "$ROOT/dist/bundle" -name "index.html" -type f 2>/dev/null | head -1)"
+      fi
+      
+      if [[ -n "$found_html" && -f "$found_html" ]]; then
+        echo "   📦 Found example in: $found_html"
+        local src_dir; src_dir="$(dirname "$found_html")"
+        # Copy all files from found location to output directory
+        cp -r "$src_dir"/* "$example_output_dir/" 2>/dev/null || true
+        
+        if [[ -f "$example_output_dir/index.html" ]]; then
+          echo "   ✅ Example built successfully (moved to correct location)"
+          echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
+        else
+          echo "   ⚠️  Copied files but index.html still not found"
+          echo ""
+        fi
+      else
+        echo "   ⚠️  Build completed but index.html not found in expected locations"
+        echo "   💡 Searched in: $ROOT/dist/bundle, $ROOT/build/default_html5"
+        echo ""
+      fi
+    fi
+  else
+    echo "   ❌ ERROR: Failed to build example" >&2
+    echo ""
+  fi
+
+  # Cleanup
+  rm -f "$tmp_ini" "$ini_in_root"
+  if [[ -n "${deployer_script:-}" && -f "$deployer_script" ]]; then
+    rm -f "$deployer_script"
+  fi
+}
+
 pack_folder_store() {
   local store_name="$1" store_index="$2" content_folder="$3"
 
@@ -108,7 +256,7 @@ pack_folder_store() {
       continue
     fi
 
-    local id version title author description api author_url image_rel depends tags
+    local id version title author description api author_url image_rel depends tags example
     id="$(jq -r '.id // "'$asset_folder'"' "$manifest")"
     version="$(jq -r '.version' "$manifest")"
     title="$(jq -r '.title // "'$id'"' "$manifest")"
@@ -116,6 +264,7 @@ pack_folder_store() {
     description="$(jq -r '.description // empty' "$manifest")"
     api="$(jq -r '.api // empty' "$manifest")"
     author_url="$(jq -r '.author_url // empty' "$manifest")"
+    example="$(jq -r '.example // empty' "$manifest")"
     example_url="$(jq -r '.example_url // empty' "$manifest")"
     image_rel="$(jq -r '.image // empty' "$manifest")"
     depends="$(jq -c '.depends // []' "$manifest")"
@@ -164,15 +313,19 @@ pack_folder_store() {
     local zip_name="${author}:${id}@${version}.zip"
     local zip_path="$DIST_DIR/$content_folder/$zip_name"
 
-    echo "   🗜️  Creating ZIP: $content_folder/$zip_name"
-    echo "   📍 ZIP path: $zip_path"
-    echo "   📍 Working dir for zip: $asset_dir"
-
     # Ensure directory exists before creating ZIP
     mkdir -p "$(dirname "$zip_path")"
 
-    # Create ZIP (will overwrite if exists)
-    ( cd "$asset_dir" && zip -q -r "$zip_path" "${content_items[@]}" )
+    # Check if ZIP already exists - if so, skip creation
+    if [[ -f "$zip_path" ]]; then
+      echo "   ✅ ZIP already exists: $content_folder/$zip_name (skipping creation)"
+    else
+      echo "   🗜️  Creating ZIP: $content_folder/$zip_name"
+      echo "   📍 ZIP path: $zip_path"
+      echo "   📍 Working dir for zip: $asset_dir"
+      # Create ZIP
+      ( cd "$asset_dir" && zip -q -r "$zip_path" "${content_items[@]}" )
+    fi
 
     if [[ ! -f "$zip_path" ]]; then
       echo "   ❌ ERROR: Failed to create ZIP at $zip_path" >&2
@@ -274,6 +427,21 @@ pack_folder_store() {
       else
         echo "   ⚠️  API file not found: $api"
       fi
+    fi
+
+    # Build example if specified and example_url is not already set
+    if [[ -z "$example_url" || "$example_url" == "null" ]]; then
+      if [[ -n "$example" && "$example" != "null" ]]; then
+        echo "   🎮 Processing example: $example"
+        local built_example_url
+        built_example_url="$(build_example_if_needed "$example" "$author" "$id" "$version" "$asset_dir")"
+        if [[ -n "$built_example_url" ]]; then
+          example_url="$built_example_url"
+          echo "   🔗 Example URL: $example_url"
+        fi
+      fi
+    else
+      echo "   ℹ️  Example URL already set: $example_url"
     fi
 
     # Build item JSON with all fields
