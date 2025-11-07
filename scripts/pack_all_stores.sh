@@ -75,18 +75,38 @@ build_example_if_needed() {
   local example_path_clean="${example_path#/}"
   local example_collection_path="$ASSETS_ROOT/$example_path_clean"
 
-  # Check if collection file exists
+  # Check if collection file exists (case-sensitive first)
   if [[ ! -f "$example_collection_path" ]]; then
-    echo "   ⚠️  Example collection not found: $example_path"
-    echo "   💡 Expected at: $example_collection_path"
-    echo ""
-    return
+    # Try case-insensitive search if file not found (handles case-sensitive filesystems)
+    local example_filename; example_filename="$(basename "$example_path")"
+    local found_file; found_file="$(find "$ASSETS_ROOT" -type f -iname "$example_filename" 2>/dev/null | grep -i "example.*collection$" | head -1)"
+
+    if [[ -n "$found_file" && -f "$found_file" ]]; then
+      example_collection_path="$found_file"
+      echo "   📍 Found example (case-insensitive search): $example_collection_path"
+    else
+      echo "   ⚠️  Example collection not found: $example_path"
+      echo "   💡 Expected at: $example_collection_path"
+      echo "   💡 Searched case-insensitively for: $example_filename"
+      echo ""
+      return
+    fi
+  else
+    echo "   📍 Found example at: $example_collection_path"
   fi
 
-  echo "   📍 Found example at: $example_collection_path"
+  # Convert found path to relative path from ASSETS_ROOT for INI file
+  # This ensures we use the correct case-sensitive path
+  local relative_collection_path
+  if [[ "$example_collection_path" == "$ASSETS_ROOT"/* ]]; then
+    relative_collection_path="/${example_collection_path#$ASSETS_ROOT/}"
+  else
+    # Fallback: use original path from JSON
+    relative_collection_path="$example_path"
+  fi
 
-  # Use the same path from JSON, just replace .collection with .collectionc for INI
-  local collection_path_for_ini="${example_path%.collection}.collectionc"
+  # Use the relative path, just replace .collection with .collectionc for INI
+  local collection_path_for_ini="${relative_collection_path%.collection}.collectionc"
 
   # Create temporary INI file
   local tmp_ini; tmp_ini="$(mktemp)"
