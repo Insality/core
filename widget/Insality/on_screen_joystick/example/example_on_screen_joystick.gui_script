@@ -1,5 +1,5 @@
 local druid = require("druid.druid")
-local on_screen_joystick = require("widget.insality.on_screen_joystick.on_screen_joystick")
+local on_screen_joystick = require("widget.Insality.on_screen_joystick.on_screen_joystick")
 
 function init(self)
 	self.druid = druid.new(self)

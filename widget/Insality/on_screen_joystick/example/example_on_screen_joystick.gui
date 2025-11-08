@@ -10,15 +10,29 @@ nodes {
   template: "/widget/Insality/on_screen_joystick/on_screen_joystick.gui"
 }
 nodes {
+  position {
+    y: 218.0
+  }
+  size {
+    x: 1300.0
+    y: 1300.0
+  }
   type: TYPE_BOX
   id: "on_screen_joystick/root"
   parent: "on_screen_joystick"
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
 }
 nodes {
+  position {
+    x: -193.0
+    y: -422.0
+  }
   type: TYPE_BOX
   id: "on_screen_joystick/content"
   parent: "on_screen_joystick/root"
+  overridden_fields: 1
   template_node_child: true
 }
 nodes {
@@ -86,15 +100,29 @@ nodes {
   template: "/widget/Insality/on_screen_joystick/on_screen_joystick.gui"
 }
 nodes {
+  position {
+    y: 218.0
+  }
+  size {
+    x: 1300.0
+    y: 1300.0
+  }
   type: TYPE_BOX
   id: "on_screen_joystick_2/root"
   parent: "on_screen_joystick_2"
+  overridden_fields: 1
+  overridden_fields: 4
   template_node_child: true
 }
 nodes {
+  position {
+    x: 87.0
+    y: -415.0
+  }
   type: TYPE_BOX
   id: "on_screen_joystick_2/content"
   parent: "on_screen_joystick_2/root"
+  overridden_fields: 1
   template_node_child: true
 }
 nodes {
