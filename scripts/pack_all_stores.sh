@@ -43,6 +43,11 @@ if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1
   exit 1
 fi
 
+# Simple stderr logger to avoid capturing logs in command substitutions
+log() {
+  echo "$@" >&2
+}
+
 # Build example HTML if needed
 build_example_if_needed() {
   local example_path="$1"  # Path from manifest, e.g., "/widget/Insality/on_screen_joystick/example/example_on_screen_joystick.collection"
@@ -63,13 +68,13 @@ build_example_if_needed() {
 
   # Check if example already exists for this version
   if [[ -f "$example_index_file" ]]; then
-    echo "   ✅ Example already built for v$version, skipping"
+    log "   ✅ Example already built for v$version, skipping"
     echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
     return
   fi
 
-  echo "   🎮 Building example for v$version..."
-  echo "   📝 Using collection path for INI: $example_path"
+  log "   🎮 Building example for v$version..."
+  log "   📝 Using collection path for INI: $example_path"
 
   local collection_path_for_ini="$example_path"
   if [[ "$collection_path_for_ini" != /* ]]; then
@@ -81,20 +86,20 @@ build_example_if_needed() {
   echo "[bootstrap]" > "$tmp_ini"
   echo "main_collection = $collection_path_for_ini" >> "$tmp_ini"
 
-  echo "Init file content:"
-  cat "$tmp_ini"
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  log "Init file content:"
+  cat "$tmp_ini" >&2
+  log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-  echo "   📝 Created INI file: $tmp_ini"
-  echo "   📋 Collection path: $collection_path_for_ini"
+  log "   📝 Created INI file: $tmp_ini"
+  log "   📋 Collection path: $collection_path_for_ini"
 
   # Create output directory
   mkdir -p "$example_output_dir"
 
-  echo "   🔨 Building HTML..."
-  echo "   📍 Working directory: $ROOT"
-  echo "   📍 Output directory: $example_output_dir"
-  echo "   📍 INI file: $tmp_ini"
+  log "   🔨 Building HTML..."
+  log "   📍 Working directory: $ROOT"
+  log "   📍 Output directory: $example_output_dir"
+  log "   📍 INI file: $tmp_ini"
 
   # Build HTML using deployer (hbr builds HTML5 version)
   # Deployer builds to dist/bundle/version/Project_version_mode_html/
@@ -107,9 +112,8 @@ build_example_if_needed() {
   cp "$tmp_ini" "$ini_in_root"
 
   # Build using deployer via curl (downloads and runs deployer.sh hbr)
-#  local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
-  local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/refs/heads/update/deployer.sh"
-  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr 2>&1); then
+  local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
+  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings ./build_ini.ini 2>&1); then
     # Deployer builds to dist/bundle/version/Project_version_mode_html/
     # Find the built HTML5 bundle
     local found_html=""
@@ -123,7 +127,7 @@ build_example_if_needed() {
     fi
 
     if [[ -n "$found_html" && -f "$found_html" ]]; then
-      echo "   📦 Found example build in: $found_html"
+      log "   📦 Found example build in: $found_html"
       local src_dir; src_dir="$(dirname "$found_html")"
 
       # Copy all files from built location to output directory
@@ -131,19 +135,19 @@ build_example_if_needed() {
       cp -r "$src_dir"/* "$example_output_dir/" 2>/dev/null || true
 
       if [[ -f "$example_output_dir/index.html" ]]; then
-        echo "   ✅ Example built successfully"
+        log "   ✅ Example built successfully"
         echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
       else
-        echo "   ⚠️  Copied files but index.html still not found"
+        log "   ⚠️  Copied files but index.html still not found"
         echo ""
       fi
     else
-      echo "   ⚠️  Build completed but index.html not found in dist/bundle"
-      echo "   💡 Searched in: $ROOT/dist/bundle"
+      log "   ⚠️  Build completed but index.html not found in dist/bundle"
+      log "   💡 Searched in: $ROOT/dist/bundle"
       echo ""
     fi
   else
-    echo "   ❌ ERROR: Failed to build example" >&2
+    log "   ❌ ERROR: Failed to build example"
     echo ""
   fi
 
