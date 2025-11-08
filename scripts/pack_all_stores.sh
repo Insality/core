@@ -69,51 +69,17 @@ build_example_if_needed() {
   fi
 
   echo "   🎮 Building example for v$version..."
+  echo "   📝 Using collection path for INI: $example_path"
 
-  # Use the path from JSON directly (e.g., "/widget/Insality/on_screen_joystick/example/example_on_screen_joystick.collection")
-  # Check if collection file exists at ASSETS_ROOT + example_path
-  local example_path_clean="${example_path#/}"
-  local example_collection_path="$ASSETS_ROOT/$example_path_clean"
-
-  # Check if collection file exists (case-sensitive first)
-  if [[ ! -f "$example_collection_path" ]]; then
-    # Try case-insensitive search if file not found (handles case-sensitive filesystems)
-    local example_filename; example_filename="$(basename "$example_path")"
-    local found_file; found_file="$(find "$ASSETS_ROOT" -type f -iname "$example_filename" 2>/dev/null | grep -i "example.*collection$" | head -1)"
-
-    if [[ -n "$found_file" && -f "$found_file" ]]; then
-      example_collection_path="$found_file"
-      echo "   📍 Found example (case-insensitive search): $example_collection_path"
-    else
-      echo "   ⚠️  Example collection not found: $example_path"
-      echo "   💡 Expected at: $example_collection_path"
-      echo "   💡 Searched case-insensitively for: $example_filename"
-      echo ""
-      return
-    fi
-  else
-    echo "   📍 Found example at: $example_collection_path"
+  local collection_path_for_ini="$example_path"
+  if [[ "$collection_path_for_ini" != /* ]]; then
+    collection_path_for_ini="/$collection_path_for_ini"
   fi
-
-  # Convert found path to relative path from ASSETS_ROOT for INI file
-  # This ensures we use the correct case-sensitive path
-  local relative_collection_path
-  if [[ "$example_collection_path" == "$ASSETS_ROOT"/* ]]; then
-    relative_collection_path="/${example_collection_path#$ASSETS_ROOT/}"
-  else
-    # Fallback: use original path from JSON
-    relative_collection_path="$example_path"
-  fi
-
-  # Use the relative path, just replace .collection with .collectionc for INI
-  local collection_path_for_ini="${relative_collection_path%.collection}.collectionc"
 
   # Create temporary INI file
   local tmp_ini; tmp_ini="$(mktemp)"
-  cat > "$tmp_ini" <<EOF
-[bootstrap]
-main_collection = $collection_path_for_ini
-EOF
+  echo "[bootstrap]" > "$tmp_ini"
+  echo "main_collection = $collection_path_for_ini" >> "$tmp_ini"
 
   echo "   📝 Created INI file: $tmp_ini"
   echo "   📋 Collection path: $collection_path_for_ini"
