@@ -3,7 +3,12 @@ name: publish_pages
 on:
   push:
     branches: [ main, dev ]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      clean_build:
+        description: 'Remove restored assets and rebuild everything from scratch'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -34,7 +39,26 @@ jobs:
           REPO="$(echo "${GITHUB_REPOSITORY#*/}")"
           echo "url=https://${OWNER}.github.io/${REPO}" >> $GITHUB_OUTPUT
 
+      - name: set clean build flag
+        id: clean
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${CLEAN_BUILD_INPUT}" == "true" ]]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+            echo "🧹 Clean build requested. Restored assets will be skipped."
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          CLEAN_BUILD_INPUT: ${{ github.event.inputs.clean_build || 'false' }}
+
+      - name: clean dist directory
+        if: steps.clean.outputs.value == 'true'
+        run: |
+          echo "🧽 Removing existing dist directory for clean build"
+          rm -rf dist
+
       - name: restore old assets
+        if: steps.clean.outputs.value != 'true'
         continue-on-error: true
         run: |
           # Download existing ZIP files from GitHub Pages to preserve old versions
