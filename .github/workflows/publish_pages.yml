@@ -27,12 +27,6 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: install defold deployer
-        run: |
-          deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
-          curl -s ${deployer_url} | bash -s install
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: compute base url
         id: base
         run: |

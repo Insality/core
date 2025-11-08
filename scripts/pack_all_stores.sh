@@ -81,6 +81,10 @@ build_example_if_needed() {
   echo "[bootstrap]" > "$tmp_ini"
   echo "main_collection = $collection_path_for_ini" >> "$tmp_ini"
 
+  echo "Init file content:"
+  cat "$tmp_ini"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
   echo "   📝 Created INI file: $tmp_ini"
   echo "   📋 Collection path: $collection_path_for_ini"
 
@@ -95,12 +99,16 @@ build_example_if_needed() {
   # Build HTML using deployer (hbr builds HTML5 version)
   # Deployer builds to dist/bundle/version/Project_version_mode_html/
   # Move INI file to root directory for deployer
-  local ini_in_root="$ROOT/$(basename "$tmp_ini")"
+  # Delete if exists
+  local ini_in_root="$ROOT/build_ini.ini"
+  if [[ -f "$ini_in_root" ]]; then
+    rm -f "$ini_in_root"
+  fi
   cp "$tmp_ini" "$ini_in_root"
 
   # Build using deployer via curl (downloads and runs deployer.sh hbr)
   local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
-  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings "$(basename "$tmp_ini")" 2>&1); then
+  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings ./build_ini.ini 2>&1); then
     # Deployer builds to dist/bundle/version/Project_version_mode_html/
     # Find the built HTML5 bundle
     local found_html=""
@@ -419,6 +427,7 @@ pack_folder_store() {
     jq --argjson item "$item" '.items += [$item]' "$tmp_index" > "${tmp_index}.tmp" && mv "${tmp_index}.tmp" "$tmp_index"
 
     echo "   ✅ packed [$store_name] $id v$version → $zip_name"
+	echo "   Example URL: $example_url"
   done
 
   cp "$tmp_index" "$out_index"
