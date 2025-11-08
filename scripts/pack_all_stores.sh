@@ -108,7 +108,7 @@ build_example_if_needed() {
 
   # Build using deployer via curl (downloads and runs deployer.sh hbr)
 #  local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
-  local deployer_url="https://github.com/Insality/defold-deployer/blob/update/deployer.sh"
+  local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/refs/heads/update/deployer.sh"
   if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings ./build_ini.ini 2>&1); then
     # Deployer builds to dist/bundle/version/Project_version_mode_html/
     # Find the built HTML5 bundle
