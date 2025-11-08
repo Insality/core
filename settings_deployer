@@ -8,7 +8,7 @@ bob_sha="1_11_2:cddb6eb43c32e4930257fcbbb30f19cf28deb081"
 bob_channel="stable"
 
 # If true, it will check and download latest bob version. It will ignore bob_sha param
-use_latest_bob=true
+use_latest_bob=false
 
 # Select Defold build server
 build_server="https://build.defold.com"
