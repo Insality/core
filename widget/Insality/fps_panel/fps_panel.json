@@ -1,13 +1,13 @@
 {
 	"author": "Insality",
 	"id": "fps_panel",
-	"version": 1,
+	"version": 2,
 	"depends": [ "Insality:mini_graph@1" ],
 	"title": "FPS Panel",
 	"description": "Shows current FPS and graph of the last 3 seconds of performance",
 	"image": "fps_panel.png",
 	"api": "fps_panel.md",
-	"example_url": "https://insality.github.io/druid/?example=ui_example_widget_fps_panel",
+	"example": "/widget/Insality/fps_panel/example/example_fps_panel.collectionc",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
 	"content": [
