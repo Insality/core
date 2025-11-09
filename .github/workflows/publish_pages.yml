@@ -112,40 +112,44 @@ jobs:
                 # Download examples (only if they don't exist locally)
                 # Examples are cached by version: author:id@version
                 # Format: dist/examples/author:id@version/index.html
-                # If example_url exists in index, it means example was already built and published
-                # We only restore index.html as a marker - pack_all_stores.sh checks for it
-                # and skips rebuilding if it exists. If example files are incomplete,
-                # the example will be rebuilt automatically.
-                jq -r '.items[]?.example_url // empty' "/tmp/$store_index" | while read example_url; do
-                  if [[ -n "$example_url" && "$example_url" != "null" ]]; then
-                    if [[ "$example_url" != "$BASE_URL/"* ]]; then
-                      echo "  ℹ️  EXM: external example URL detected ($example_url), skipping download"
-                      continue
-                    fi
-                    # Extract example directory path from URL
-                    # URL format: https://owner.github.io/repo/examples/author:id@version/index.html
-                    example_path=$(echo "$example_url" | sed "s|$BASE_URL/||" | sed "s|/index.html$||")
-                    if [[ -n "$example_path" ]]; then
-                      # If example already exists locally, skip downloading
-                      if [[ -f "dist/$example_path/index.html" ]]; then
-                        echo "  ✅ EXM: $example_path (already exists locally, skipping)"
+                # Collect all example URLs to restore all versions (including old ones)
+                jq -r '.items[]?.example_url // empty' "/tmp/$store_index" >> /tmp/all_example_urls.txt 2>/dev/null || true
+              fi
+            done
+
+            # Restore all examples from collected URLs (including old versions)
+            if [[ -f /tmp/all_example_urls.txt ]]; then
+              echo "📦 Restoring examples from all versions..."
+              sort -u /tmp/all_example_urls.txt | while read example_url; do
+                if [[ -n "$example_url" && "$example_url" != "null" ]]; then
+                  if [[ "$example_url" != "$BASE_URL/"* ]]; then
+                    echo "  ℹ️  EXM: external example URL detected ($example_url), skipping download"
+                    continue
+                  fi
+                  # Extract example directory path from URL
+                  # URL format: https://owner.github.io/repo/examples/author:id@version/index.html
+                  example_path=$(echo "$example_url" | sed "s|$BASE_URL/||" | sed "s|/index.html$||")
+                  if [[ -n "$example_path" ]]; then
+                    # If example directory already exists locally, skip downloading
+                    if [[ -d "dist/$example_path" ]]; then
+                      echo "  ✅ EXM: $example_path (already exists locally, skipping)"
+                    else
+                      # Try to download index.html to verify example exists on GitHub Pages
+                      # pack_all_stores.sh checks for directory existence and skips rebuilding if it exists
+                      mkdir -p "dist/$example_path"
+                      if curl -f -s "$example_url" -o "dist/$example_path/index.html" 2>/dev/null; then
+                        echo "  ✅ EXM: $example_path (restored from GitHub Pages)"
                       else
-                        # Create directory and download index.html as cache marker
-                        # pack_all_stores.sh will check for index.html and skip rebuilding if it exists
-                        mkdir -p "dist/$example_path"
-                        if curl -f -s "$example_url" -o "dist/$example_path/index.html" 2>/dev/null; then
-                          echo "  ✅ EXM: $example_path (cache marker restored from GitHub Pages)"
-                          echo "         Note: Example files will be restored from GitHub Pages on deploy"
-                          echo "         or rebuilt by pack_all_stores.sh if incomplete"
-                        else
-                          echo "  ℹ️  EXM: $example_path (not found on GitHub Pages, will be built)"
-                        fi
+                        # Even if download fails, create directory as marker
+                        # Example might be missing on GitHub Pages but will be rebuilt
+                        echo "  ⚠️  EXM: $example_path (not found on GitHub Pages, will be rebuilt if needed)"
                       fi
                     fi
                   fi
-                done
-              fi
-            done
+                fi
+              done
+              rm -f /tmp/all_example_urls.txt
+            fi
 
             echo "✅ Old assets restored"
           else
