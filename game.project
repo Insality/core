@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /widget/Insality/fps_panel/example/example_fps_panel.collectionc
+main_collection = /widget/Insality/tiling_node/example/example_tiling_node.collectionc
 
 [script]
 shared_state = 1

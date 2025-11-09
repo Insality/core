@@ -1,13 +1,12 @@
-local component = require("druid.component")
 local helper = require("druid.helper")
 local queues = require("event.queues")
 
----@class druid.tiling_node: druid.component
+---@class druid.tiling_node: druid.widget
 ---@field animation table
 ---@field node node
 ---@field params vector4
 ---@field time number
-local M = component.create("tiling_node")
+local M = {}
 
 M.PROP_SIZE_X = hash("size.x")
 M.PROP_SIZE_Y = hash("size.y")
