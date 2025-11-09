@@ -118,6 +118,10 @@ jobs:
                 # the example will be rebuilt automatically.
                 jq -r '.items[]?.example_url // empty' "/tmp/$store_index" | while read example_url; do
                   if [[ -n "$example_url" && "$example_url" != "null" ]]; then
+                    if [[ "$example_url" != "$BASE_URL/"* ]]; then
+                      echo "  ℹ️  EXM: external example URL detected ($example_url), skipping download"
+                      continue
+                    fi
                     # Extract example directory path from URL
                     # URL format: https://owner.github.io/repo/examples/author:id@version/index.html
                     example_path=$(echo "$example_url" | sed "s|$BASE_URL/||" | sed "s|/index.html$||")

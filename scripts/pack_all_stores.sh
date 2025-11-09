@@ -65,23 +65,16 @@ build_example_if_needed() {
   local example_dir_name="${author}:${id}@${version}"
   local example_output_dir="$DIST_DIR/examples/$example_dir_name"
   local example_index_file="$example_output_dir/index.html"
+  local example_loader_file="$example_output_dir/dmloader.js"
 
   # Check if example already exists for this version
-  if [[ -f "$example_index_file" ]]; then
-    local additional_files_count
-    if [[ -d "$example_output_dir" ]]; then
-      additional_files_count="$(find "$example_output_dir" -type f ! -name 'index.html' 2>/dev/null | wc -l | tr -d '[:space:]')"
-    else
-      additional_files_count=0
-    fi
+  if [[ -f "$example_index_file" && -f "$example_loader_file" ]]; then
+    log "   ✅ Example already built for v$version, skipping"
+    echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
+    return
 
-    if [[ "${additional_files_count:-0}" -gt 0 ]]; then
-      log "   ✅ Example already built for v$version, skipping"
-      echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
-      return
-    fi
-
-    log "   ⚠️  Example cache incomplete (only index.html present), rebuilding"
+  elif [[ -f "$example_index_file" || -f "$example_loader_file" ]]; then
+    log "   ⚠️  Example files incomplete, rebuilding"
     rm -rf "$example_output_dir"
   fi
 
@@ -124,7 +117,7 @@ build_example_if_needed() {
   cp "$tmp_ini" "$ini_in_root"
 
   # Build using deployer via curl (downloads and runs deployer.sh hbr)
-  local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/4/deployer.sh"
+  local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/refs/heads/update/deployer.sh"
   if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings ./build_ini.ini) >&2; then
     # Deployer builds to dist/bundle/version/Project_version_mode_html/
     # Find the built HTML5 bundle
@@ -146,7 +139,7 @@ build_example_if_needed() {
       mkdir -p "$example_output_dir"
       cp -r "$src_dir"/* "$example_output_dir/" 2>/dev/null || true
 
-      if [[ -f "$example_output_dir/index.html" ]]; then
+      if [[ -f "$example_output_dir/index.html" && -f "$example_loader_file" ]]; then
         log "   ✅ Example built successfully"
         echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
       else
