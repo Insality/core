@@ -111,7 +111,7 @@ jobs:
               fi
             done
 
-            # Restore examples (only check existence via index.html)
+            # Restore examples (check existence on GitHub Pages, create directory marker)
             if [[ -f /tmp/all_example_urls.txt ]]; then
               echo "📦 Checking examples..."
               sort -u /tmp/all_example_urls.txt | while read example_url; do
@@ -123,8 +123,10 @@ jobs:
                   if [[ -n "$example_path" ]]; then
                     if [[ -d "dist/$example_path" ]]; then
                       echo "  ✅ EXM: $example_path"
-                    elif curl -f -s "$example_url" -o "dist/$example_path/index.html" 2>/dev/null; then
-                      echo "  ✅ EXM: $example_path (restored)"
+                    elif curl -f -s "$example_url" -o /dev/null 2>/dev/null; then
+                      # Create directory marker (example exists on GitHub Pages)
+                      mkdir -p "dist/$example_path"
+                      echo "  ✅ EXM: $example_path (exists on Pages)"
                     fi
                   fi
                 fi
