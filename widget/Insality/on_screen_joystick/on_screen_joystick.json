@@ -1,7 +1,7 @@
 {
 	"author": "Insality",
 	"id": "on_screen_joystick",
-	"version": 1,
+	"version": 2,
 	"title": "On Screen Joystick",
 	"description": "On screen joystick widget",
 	"api": "on_screen_joystick.md",

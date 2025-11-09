@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /widget/Insality/on_screen_joystick/example/example_on_screen_joystick.collectionc
+main_collection = /widget/Insality/memory_panel/example/example_memory_panel.collectionc
 
 [script]
 shared_state = 1
