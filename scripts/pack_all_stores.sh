@@ -262,13 +262,13 @@ pack_folder_store() {
     cp -f "$manifest" "$manifest_dist_dir/${id}.json"
     manifest_url="${BASE_URL:+$BASE_URL/}manifests/$content_folder/$author/${id}.json"
 
-    # Copy image if exists
+    # Copy image if exists (with author to avoid conflicts)
     if [[ -n "$image_rel" && -f "$asset_dir/$image_rel" ]]; then
-      local image_dir="$DIST_DIR/images/$id"
+      local image_dir="$DIST_DIR/images/$author/$id"
       ensure_dir "$image_dir"
       cp -f "$asset_dir/$image_rel" "$image_dir/"
       local img_name; img_name="$(basename "$image_rel")"
-      image_url="${BASE_URL:+$BASE_URL/}images/$id/$img_name"
+      image_url="${BASE_URL:+$BASE_URL/}images/$author/$id/$img_name"
     fi
 
     # Generate GitHub URL for API documentation
