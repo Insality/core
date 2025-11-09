@@ -111,9 +111,9 @@ jobs:
               fi
             done
 
-            # Restore examples (check existence on GitHub Pages, create directory marker)
+            # Restore examples (download all files from GitHub Pages)
             if [[ -f /tmp/all_example_urls.txt ]]; then
-              echo "📦 Checking examples..."
+              echo "📦 Restoring examples..."
               sort -u /tmp/all_example_urls.txt | while read example_url; do
                 if [[ -n "$example_url" && "$example_url" != "null" ]]; then
                   if [[ "$example_url" != "$BASE_URL/"* ]]; then
@@ -121,12 +121,32 @@ jobs:
                   fi
                   example_path=$(echo "$example_url" | sed "s|$BASE_URL/||" | sed "s|/index.html$||")
                   if [[ -n "$example_path" ]]; then
-                    if [[ -d "dist/$example_path" ]]; then
-                      echo "  ✅ EXM: $example_path"
+                    if [[ -d "dist/$example_path" && -f "dist/$example_path/index.html" && -f "dist/$example_path/dmloader.js" ]]; then
+                      echo "  ✅ EXM: $example_path (already exists)"
                     elif curl -f -s "$example_url" -o /dev/null 2>/dev/null; then
-                      # Create directory marker (example exists on GitHub Pages)
+                      # Download all example files from GitHub Pages
+                      example_base_url=$(echo "$example_url" | sed "s|/index.html$||")
                       mkdir -p "dist/$example_path"
-                      echo "  ✅ EXM: $example_path (exists on Pages)"
+                      
+                      # Download main files
+                      downloaded=0
+                      for file in index.html dmloader.js Core.wasm Core_wasm.js; do
+                        if curl -f -s "$example_base_url/$file" -o "dist/$example_path/$file" 2>/dev/null; then
+                          downloaded=$((downloaded + 1))
+                        fi
+                      done
+                      
+                      # Download archive files
+                      mkdir -p "dist/$example_path/archive"
+                      for file in game0.public.der game0.dmanifest game0.arci game0.arcd game0.projectc archive_files.json; do
+                        curl -f -s "$example_base_url/archive/$file" -o "dist/$example_path/archive/$file" 2>/dev/null || true
+                      done
+                      
+                      if [[ $downloaded -gt 0 ]]; then
+                        echo "  ✅ EXM: $example_path (restored $downloaded file(s))"
+                      else
+                        echo "  ⚠️  EXM: $example_path (exists but files not downloaded)"
+                      fi
                     fi
                   fi
                 fi

@@ -94,8 +94,8 @@ build_example_if_needed() {
   local example_output_dir="$DIST_DIR/examples/$example_dir_name"
   local example_url="${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
 
-  # Check if example directory already exists (restored from cache)
-  if [[ -d "$example_output_dir" ]]; then
+  # Check if example directory already exists with required files (restored from GitHub Pages)
+  if [[ -d "$example_output_dir" && -f "$example_output_dir/index.html" && -f "$example_output_dir/dmloader.js" ]]; then
     echo "$example_url"
     return
   fi
