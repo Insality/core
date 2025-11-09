@@ -223,7 +223,7 @@ nodes {
   id: "property_slider"
   parent: "propeties"
   inherit_alpha: true
-  template: "/druid/widget/properties_panel/properties/property_slider.gui"
+  template: "/widget/Insality/properties_panel/properties/property_slider.gui"
 }
 nodes {
   type: TYPE_BOX
@@ -287,7 +287,7 @@ nodes {
   id: "property_checkbox"
   parent: "propeties"
   inherit_alpha: true
-  template: "/druid/widget/properties_panel/properties/property_checkbox.gui"
+  template: "/widget/Insality/properties_panel/properties/property_checkbox.gui"
 }
 nodes {
   type: TYPE_BOX
@@ -333,7 +333,7 @@ nodes {
   id: "property_button"
   parent: "propeties"
   inherit_alpha: true
-  template: "/druid/widget/properties_panel/properties/property_button.gui"
+  template: "/widget/Insality/properties_panel/properties/property_button.gui"
 }
 nodes {
   type: TYPE_BOX
@@ -379,7 +379,7 @@ nodes {
   id: "property_input"
   parent: "propeties"
   inherit_alpha: true
-  template: "/druid/widget/properties_panel/properties/property_input.gui"
+  template: "/widget/Insality/properties_panel/properties/property_input.gui"
 }
 nodes {
   type: TYPE_BOX
@@ -455,7 +455,7 @@ nodes {
   id: "property_text"
   parent: "propeties"
   inherit_alpha: true
-  template: "/druid/widget/properties_panel/properties/property_text.gui"
+  template: "/widget/Insality/properties_panel/properties/property_text.gui"
 }
 nodes {
   type: TYPE_BOX
@@ -483,7 +483,7 @@ nodes {
   id: "property_left_right_selector"
   parent: "propeties"
   inherit_alpha: true
-  template: "/druid/widget/properties_panel/properties/property_left_right_selector.gui"
+  template: "/widget/Insality/properties_panel/properties/property_left_right_selector.gui"
 }
 nodes {
   type: TYPE_BOX
@@ -547,7 +547,7 @@ nodes {
   id: "property_vector3"
   parent: "propeties"
   inherit_alpha: true
-  template: "/druid/widget/properties_panel/properties/property_vector3.gui"
+  template: "/widget/Insality/properties_panel/properties/property_vector3.gui"
 }
 nodes {
   type: TYPE_BOX
