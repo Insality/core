@@ -44,7 +44,7 @@ fi
 # Helper functions
 ensure_dir() {
   local path="$1"
-  [[ ! -d "$path" ]] && mkdir -p "$path"
+  [[ ! -d "$path" ]] && mkdir -p "$path" || true
 }
 
 get_file_size() {
