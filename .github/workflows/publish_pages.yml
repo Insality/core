@@ -169,6 +169,13 @@ jobs:
           GITHUB_BRANCH: main
         run: bash scripts/pack_all_stores.sh
 
+      - name: clean bundle directory
+        run: |
+          if [[ -d dist/bundle ]]; then
+            echo "🗑️  Removing dist/bundle directory (not needed in artifact)"
+            rm -rf dist/bundle
+          fi
+
       - name: configure pages
         uses: actions/configure-pages@v5
 
