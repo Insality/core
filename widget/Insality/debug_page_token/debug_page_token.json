@@ -3,7 +3,7 @@
 	"id": "debug_page_token",
 	"version": 1,
 	"depends": [ "Insality:properties_panel@1" ],
-	"title": "Token Debug Page",
+	"title": "Debug Page Token",
 	"description": "Token debug page for Properties Panel",
 	"api": "debug_page_token.md",
 	"author_url": "https://github.com/Insality",

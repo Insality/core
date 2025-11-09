@@ -3,7 +3,7 @@
 	"id": "debug_page_quest",
 	"version": 1,
 	"depends": [ "Insality:properties_panel@1" ],
-	"title": "Quest Debug Page",
+	"title": "Debug Page Quest",
 	"description": "Quest debug page for Properties Panel",
 	"api": "debug_page_quest.md",
 	"author_url": "https://github.com/Insality",
