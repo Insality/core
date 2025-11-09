@@ -256,11 +256,11 @@ pack_folder_store() {
 
     json_zip_url="${BASE_URL:+$BASE_URL/}$content_folder/$json_zip_name"
 
-    # Copy manifest JSON to dist
-    local manifest_dist_dir="$DIST_DIR/manifests/$content_folder"
+    # Copy manifest JSON to dist (with author to avoid conflicts)
+    local manifest_dist_dir="$DIST_DIR/manifests/$content_folder/$author"
     ensure_dir "$manifest_dist_dir"
     cp -f "$manifest" "$manifest_dist_dir/${id}.json"
-    manifest_url="${BASE_URL:+$BASE_URL/}manifests/$content_folder/${id}.json"
+    manifest_url="${BASE_URL:+$BASE_URL/}manifests/$content_folder/$author/${id}.json"
 
     # Copy image if exists
     if [[ -n "$image_rel" && -f "$asset_dir/$image_rel" ]]; then
