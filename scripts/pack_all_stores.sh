@@ -55,6 +55,7 @@ build_example_if_needed() {
   local id="$3"
   local version="$4"
   local asset_dir="$5"  # Directory where manifest is located
+  local zip_was_created="$6"
 
   if [[ -z "$example_path" || "$example_path" == "null" ]]; then
     echo ""
@@ -66,11 +67,18 @@ build_example_if_needed() {
   local example_output_dir="$DIST_DIR/examples/$example_dir_name"
   local example_index_file="$example_output_dir/index.html"
   local example_loader_file="$example_output_dir/dmloader.js"
+  local example_url="${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
+
+  if [[ "$zip_was_created" != "1" ]]; then
+    log "   ⏩ Example build skipped (asset ZIP unchanged)"
+    echo "$example_url"
+    return
+  fi
 
   # Check if example already exists for this version
   if [[ -f "$example_index_file" && -f "$example_loader_file" ]]; then
     log "   ✅ Example already built for v$version, skipping"
-    echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
+    echo "$example_url"
     return
 
   elif [[ -f "$example_index_file" || -f "$example_loader_file" ]]; then
@@ -141,7 +149,7 @@ build_example_if_needed() {
 
       if [[ -f "$example_output_dir/index.html" && -f "$example_loader_file" ]]; then
         log "   ✅ Example built successfully"
-        echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
+        echo "$example_url"
       else
         log "   ⚠️  Copied files but index.html still not found"
         echo ""
@@ -281,6 +289,7 @@ pack_folder_store() {
     # ZIP name format: author:id@version.zip in content_folder/
     local zip_name="${author}:${id}@${version}.zip"
     local zip_path="$DIST_DIR/$content_folder/$zip_name"
+    local zip_was_created=0
 
     # Ensure directory exists before creating ZIP
     mkdir -p "$(dirname "$zip_path")"
@@ -294,6 +303,7 @@ pack_folder_store() {
       echo "   📍 Working dir for zip: $asset_dir"
       # Create ZIP
       ( cd "$asset_dir" && zip -q -r "$zip_path" "${content_items[@]}" )
+      zip_was_created=1
     fi
 
     if [[ ! -f "$zip_path" ]]; then
@@ -403,7 +413,7 @@ pack_folder_store() {
       if [[ -n "$example" && "$example" != "null" ]]; then
         echo "   🎮 Processing example: $example"
         local built_example_url
-        built_example_url="$(build_example_if_needed "$example" "$author" "$id" "$version" "$asset_dir")"
+        built_example_url="$(build_example_if_needed "$example" "$author" "$id" "$version" "$asset_dir" "$zip_was_created")"
         if [[ -n "$built_example_url" ]]; then
           example_url="$built_example_url"
           echo "   🔗 Example URL: $example_url"
