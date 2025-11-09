@@ -35,6 +35,7 @@ BASE_URL="${BASE_URL:-}"  # set by CI to Pages URL
 require() { command -v "$1" >/dev/null 2>&1 || { echo "Missing '$1'"; exit 1; }; }
 require jq
 require zip
+require zipinfo
 # Check for sha256 command (either sha256sum or shasum)
 if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1; then
   echo "Missing sha256 command (need either 'sha256sum' or 'shasum')"
@@ -237,6 +238,10 @@ pack_folder_store() {
       exit 1
     fi
 
+    # Extract list of files from ZIP archive
+    local zip_content
+    zip_content="$(zipinfo -1 "$zip_path" | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+
     local sha256 size zip_url image_url="" json_zip_url manifest_url api_url=""
     sha256="$(get_sha256 "$zip_path")"
     size="$(get_file_size "$zip_path")"
@@ -251,7 +256,8 @@ pack_folder_store() {
       --arg data "$base64_data" \
       --arg filename "$zip_name" \
       --arg size "$size" \
-      '{"data": $data, "filename": $filename, "size": ($size|tonumber)}' \
+      --argjson content "$zip_content" \
+      '{"data": $data, "filename": $filename, "size": ($size|tonumber), "content": $content}' \
       > "$json_zip_path"
 
     json_zip_url="${BASE_URL:+$BASE_URL/}$content_folder/$json_zip_name"
