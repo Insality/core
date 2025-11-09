@@ -68,9 +68,21 @@ build_example_if_needed() {
 
   # Check if example already exists for this version
   if [[ -f "$example_index_file" ]]; then
-    log "   ✅ Example already built for v$version, skipping"
-    echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
-    return
+    local additional_files_count
+    if [[ -d "$example_output_dir" ]]; then
+      additional_files_count="$(find "$example_output_dir" -type f ! -name 'index.html' 2>/dev/null | wc -l | tr -d '[:space:]')"
+    else
+      additional_files_count=0
+    fi
+
+    if [[ "${additional_files_count:-0}" -gt 0 ]]; then
+      log "   ✅ Example already built for v$version, skipping"
+      echo "${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
+      return
+    fi
+
+    log "   ⚠️  Example cache incomplete (only index.html present), rebuilding"
+    rm -rf "$example_output_dir"
   fi
 
   log "   🎮 Building example for v$version..."
