@@ -134,14 +134,29 @@ jobs:
                     if [[ -d "dist/$example_path" ]]; then
                       echo "  ✅ EXM: $example_path (already exists locally, skipping)"
                     else
-                      # Try to download index.html to verify example exists on GitHub Pages
-                      # pack_all_stores.sh checks for directory existence and skips rebuilding if it exists
+                      # Download all known files from example directory
+                      # GitHub Pages doesn't support directory listing, so we download known files directly
+                      echo "  ⬇️  EXM: Downloading $example_path from GitHub Pages..."
+                      example_base_url=$(echo "$example_url" | sed "s|/index.html$||")
                       mkdir -p "dist/$example_path"
-                      if curl -f -s "$example_url" -o "dist/$example_path/index.html" 2>/dev/null; then
-                        echo "  ✅ EXM: $example_path (restored from GitHub Pages)"
+                      
+                      # Download main files
+                      downloaded_count=0
+                      for file in index.html dmloader.js Core.wasm Core_wasm.js; do
+                        if curl -f -s "$example_base_url/$file" -o "dist/$example_path/$file" 2>/dev/null; then
+                          downloaded_count=$((downloaded_count + 1))
+                        fi
+                      done
+                      
+                      # Download archive folder files
+                      mkdir -p "dist/$example_path/archive"
+                      for file in game0.public.der game0.dmanifest game0.arci game0.arcd game0.projectc archive_files.json; do
+                        curl -f -s "$example_base_url/archive/$file" -o "dist/$example_path/archive/$file" 2>/dev/null || true
+                      done
+                      
+                      if [[ $downloaded_count -gt 0 ]]; then
+                        echo "  ✅ EXM: $example_path (restored $downloaded_count file(s) from GitHub Pages)"
                       else
-                        # Even if download fails, create directory as marker
-                        # Example might be missing on GitHub Pages but will be rebuilt
                         echo "  ⚠️  EXM: $example_path (not found on GitHub Pages, will be rebuilt if needed)"
                       fi
                     fi
