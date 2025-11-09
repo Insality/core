@@ -72,15 +72,9 @@ build_example_if_needed() {
   # If directory exists, example was already built - skip rebuilding
   # Only rebuild when version changes (new directory) or example was added for the first time
   if [[ -d "$example_output_dir" ]]; then
-    # Check if example files are complete
-    if [[ -f "$example_index_file" && -f "$example_loader_file" ]]; then
-      log "   ✅ Example already built for v$version, skipping"
-      echo "$example_url"
-      return
-    else
-      log "   ⚠️  Example directory exists but files incomplete, rebuilding"
-      rm -rf "$example_output_dir"
-    fi
+    log "   ✅ Example already built for v$version (directory exists), skipping"
+    echo "$example_url"
+    return
   fi
 
   log "   🎮 Building example for v$version..."
