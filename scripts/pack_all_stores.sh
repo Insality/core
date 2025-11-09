@@ -313,8 +313,14 @@ pack_folder_store() {
     # Add item to items array
     jq --argjson item "$item" '.items += [$item]' "$tmp_index" > "${tmp_index}.tmp" && mv "${tmp_index}.tmp" "$tmp_index"
 
-    # Compact output: author:id@version with all URLs
-    echo "  ✅ $author:$id@$version | zip:$zip_url json:$json_zip_url manifest:$manifest_url${image_url:+ image:$image_url}${api_url:+ api:$api_url}${example_url:+ example:$example_url}"
+    # Compact output: author:id@version with all URLs (one per line)
+    echo "  ✅ $author:$id@$version"
+    echo "     zip: $zip_url"
+    echo "     json: $json_zip_url"
+    echo "     manifest: $manifest_url"
+    [[ -n "$image_url" ]] && echo "     image: $image_url"
+    [[ -n "$api_url" ]] && echo "     api: $api_url"
+    [[ -n "$example_url" ]] && echo "     example: $example_url"
   done
 
   cp "$tmp_index" "$out_index"
