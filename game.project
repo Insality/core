@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /widget/Insality/tiling_node/example/example_tiling_node.collectionc
+main_collection = /widget/Insality/external_image/example/example_external_image.collectionc
 
 [script]
 shared_state = 1

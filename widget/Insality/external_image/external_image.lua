@@ -1,11 +1,9 @@
-local component = require("druid.component")
-
----@class widget.external_image: druid.component
+---@class widget.external_image: druid.widget
 ---@field root node
 ---@field private size vector3
 ---@field private texture_id string
 ---@field private adjust_mode number
-local M = component.create("druid.external_image")
+local M = {}
 
 local REFERENCE_COUNTER = {}
 local TEXTURE_DATA = {}
@@ -124,7 +122,8 @@ end
 function M:_set_texture(texture_id)
 	gui.set_texture(self.root, texture_id)
 
-	if self.adjust_mode == gui.ADJUST_FIT then
+	local size_mode = gui.get_size_mode(self.root)
+	if self.adjust_mode == gui.ADJUST_FIT and size_mode == gui.SIZE_MODE_MANUAL then
 		local texture_data = TEXTURE_DATA[texture_id]
 		local texture_width = texture_data.width
 		local texture_height = texture_data.height
