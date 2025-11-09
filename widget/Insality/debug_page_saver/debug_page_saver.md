@@ -1,6 +1,6 @@
-# widget.saver_debug_page API
+# widget.debug_page_saver API
 
-> at widget/insality/saver_debug_page/saver_debug_page.lua
+> at widget/insality/debug_page_saver/debug_page_saver.lua
 
 ## Functions
 
@@ -12,7 +12,7 @@
 
 ---
 ```lua
-saver_debug_page:render_properties_panel(druid, properties_panel)
+debug_page_saver:render_properties_panel(druid, properties_panel)
 ```
 
 - **Parameters:**
@@ -23,7 +23,7 @@ saver_debug_page:render_properties_panel(druid, properties_panel)
 
 ---
 ```lua
-saver_debug_page:open_at_desktop(path)
+debug_page_saver:open_at_desktop(path)
 ```
 
 - **Parameters:**

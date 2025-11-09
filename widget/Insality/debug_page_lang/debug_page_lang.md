@@ -1,6 +1,6 @@
-# widget.lang_debug_page API
+# widget.debug_page_lang API
 
-> at widget/insality/lang_debug_page/lang_debug_page.lua
+> at widget/insality/debug_page_lang/debug_page_lang.lua
 
 ## Functions
 
@@ -11,7 +11,7 @@
 
 ---
 ```lua
-lang_debug_page:render_properties_panel(lang, druid, properties_panel)
+debug_page_lang:render_properties_panel(lang, druid, properties_panel)
 ```
 
 - **Parameters:**
