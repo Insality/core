@@ -238,9 +238,9 @@ pack_folder_store() {
       exit 1
     fi
 
-    # Extract list of files from ZIP archive
+    # Extract list of files from ZIP archive (exclude directories)
     local zip_content
-    zip_content="$(zipinfo -1 "$zip_path" | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+    zip_content="$(zipinfo -1 "$zip_path" | jq -R -s -c 'split("\n") | map(select(length > 0 and (. | endswith("/") | not)))')"
 
     local sha256 size zip_url image_url="" json_zip_url manifest_url api_url=""
     sha256="$(get_sha256 "$zip_path")"
