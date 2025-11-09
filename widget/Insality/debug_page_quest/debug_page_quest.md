@@ -1,6 +1,6 @@
-# widget.quest_debug_page API
+# widget.debug_page_quest API
 
-> at widget/insality/quest_debug_page/quest_debug_page.lua
+> at widget/insality/debug_page_quest/debug_page_quest.lua
 
 ## Functions
 
@@ -20,7 +20,7 @@
 
 ---
 ```lua
-quest_debug_page:render_properties_panel(druid, properties_panel)
+debug_page_quest:render_properties_panel(druid, properties_panel)
 ```
 
 - **Parameters:**
@@ -31,7 +31,7 @@ quest_debug_page:render_properties_panel(druid, properties_panel)
 
 ---
 ```lua
-quest_debug_page:render_active_quests_page(druid, properties_panel)
+debug_page_quest:render_active_quests_page(druid, properties_panel)
 ```
 
 Render the active quests page
@@ -44,7 +44,7 @@ Render the active quests page
 
 ---
 ```lua
-quest_debug_page:add_render_quests(druid, quests, properties_panel)
+debug_page_quest:add_render_quests(druid, quests, properties_panel)
 ```
 
 Render the quests page
@@ -58,7 +58,7 @@ Render the quests page
 
 ---
 ```lua
-quest_debug_page:render_completed_quests_page(druid, properties_panel)
+debug_page_quest:render_completed_quests_page(druid, properties_panel)
 ```
 
 Render the completed quests page
@@ -71,7 +71,7 @@ Render the completed quests page
 
 ---
 ```lua
-quest_debug_page:render_available_quests_page(druid, properties_panel)
+debug_page_quest:render_available_quests_page(druid, properties_panel)
 ```
 
 Render the available quests page
@@ -84,7 +84,7 @@ Render the available quests page
 
 ---
 ```lua
-quest_debug_page:render_all_quests_page(druid, properties_panel)
+debug_page_quest:render_all_quests_page(druid, properties_panel)
 ```
 
 Render the all quests page
@@ -97,7 +97,7 @@ Render the all quests page
 
 ---
 ```lua
-quest_debug_page:render_quest_events_page(druid, properties_panel)
+debug_page_quest:render_quest_events_page(druid, properties_panel)
 ```
 
 Render the quest events page
@@ -110,7 +110,7 @@ Render the quest events page
 
 ---
 ```lua
-quest_debug_page:render_quest_event_page(druid, action, properties_panel)
+debug_page_quest:render_quest_event_page(druid, action, properties_panel)
 ```
 
 Render the quest event page
@@ -124,7 +124,7 @@ Render the quest event page
 
 ---
 ```lua
-quest_debug_page:get_quest_status(quest, quest_id)
+debug_page_quest:get_quest_status(quest, quest_id)
 ```
 
 Get the quest status text
@@ -140,7 +140,7 @@ Get the quest status text
 
 ---
 ```lua
-quest_debug_page:render_quest_details_page(druid, quest_id, properties_panel)
+debug_page_quest:render_quest_details_page(druid, quest_id, properties_panel)
 ```
 
 Render the details page for a specific quest
