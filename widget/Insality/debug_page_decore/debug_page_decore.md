@@ -1,6 +1,6 @@
-# widget.decore_debug_page API
+# widget.debug_page_decore API
 
-> at widget/insality/decore_debug_page/decore_debug_page.lua
+> at widget/insality/debug_page_decore/debug_page_decore.lua
 
 ## Functions
 
@@ -14,7 +14,7 @@
 
 ---
 ```lua
-decore_debug_page:render_properties_panel(world, druid, properties_panel)
+debug_page_decore:render_properties_panel(world, druid, properties_panel)
 ```
 
 - **Parameters:**
@@ -26,7 +26,7 @@ decore_debug_page:render_properties_panel(world, druid, properties_panel)
 
 ---
 ```lua
-decore_debug_page:render_entities_page(world, druid, properties_panel)
+debug_page_decore:render_entities_page(world, druid, properties_panel)
 ```
 
 - **Parameters:**
@@ -38,7 +38,7 @@ decore_debug_page:render_entities_page(world, druid, properties_panel)
 
 ---
 ```lua
-decore_debug_page:render_systems_page(world, druid, properties_panel)
+debug_page_decore:render_systems_page(world, druid, properties_panel)
 ```
 
 - **Parameters:**
@@ -50,7 +50,7 @@ decore_debug_page:render_systems_page(world, druid, properties_panel)
 
 ---
 ```lua
-decore_debug_page:render_entity_prefabs_page(world, druid, properties_panel)
+debug_page_decore:render_entity_prefabs_page(world, druid, properties_panel)
 ```
 
 - **Parameters:**
