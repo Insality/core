@@ -21,7 +21,7 @@ show_fullscreen_button = 0
 [project]
 title = Core
 developer = Insality
-version = 
+version =
 dependencies#0 = https://github.com/Insality/druid/archive/2a169da3afd8bb94eff10fe26eea830c9603f648.zip
 dependencies#1 = https://github.com/Insality/defold-event/archive/refs/tags/13.zip
 dependencies#2 = https://github.com/Insality/decore/archive/refs/tags/2.zip

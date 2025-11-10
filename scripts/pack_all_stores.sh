@@ -111,9 +111,6 @@ build_example_if_needed() {
   local tmp_ini; tmp_ini="$(mktemp)"
   echo "[bootstrap]" > "$tmp_ini"
   echo "main_collection = $collection_path_for_ini" >> "$tmp_ini"
-  echo "" >> "$tmp_ini"
-  echo "[project]" >> "$tmp_ini"
-  echo "title = \"${title} v${version} | ${author} | Core Asset Store\"" >> "$tmp_ini"
 
   ensure_dir "$example_output_dir"
 
