@@ -7,7 +7,7 @@
 	"description": "Shows current FPS and graph of the last 3 seconds of performance",
 	"image": "fps_panel.png",
 	"api": "example/example_fps_panel.gui_script",
-	"example": "./example/example_fps_panel.collectionc",
+	"example": "/widget/Insality/fps_panel/example/example_fps_panel.collectionc",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
 	"content": [
