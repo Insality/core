@@ -78,92 +78,6 @@ encode_base64() {
   fi
 }
 
-generate_store_index_md() {
-  local store_name="$1" store_index="$2" base_url="$3"
-  local store_json_path="$DIST_DIR/$store_index"
-  
-  if [[ ! -f "$store_json_path" ]]; then
-    return
-  fi
-  
-  local item_count=$(jq -r ".items | length" "$store_json_path")
-  if [[ "$item_count" -eq 0 ]]; then
-    return
-  fi
-  
-  local md_filename="${store_index%.json}_index.md"
-  local md_path="$DIST_DIR/$md_filename"
-  
-  {
-    echo "# $store_name"
-    echo ""
-    echo "This page contains all assets available in this store."
-    echo ""
-    echo "| Preview | Name | Version | Author | Example | Description |"
-    echo "|---------|------|---------|--------|---------|-------------|"
-    
-    # Process each item
-    # Pre-process base_url to remove trailing slash if present
-    # Note: Not using 'local' here so it's accessible in the subshell created by the pipe
-    base_url_clean="${base_url%/}"
-    
-    jq -r '.items[] | 
-      "\(.image // "null")\t\(.title // "null")\t\(.version // "null")\t\(.author // "null")\t\(.example_url // "null")\t\(.description // "null")"
-    ' "$store_json_path" | while IFS=$'\t' read -r image title version author example_url description; do
-      
-      # Handle image
-      local image_cell="—"
-      if [[ -n "$image" && "$image" != "null" ]]; then
-        local image_url="$image"
-        if [[ "$image_url" != http* ]]; then
-          # Convert relative to absolute URL
-          if [[ -n "$base_url_clean" ]]; then
-            image_url="$base_url_clean/$image_url"
-          fi
-        fi
-        # Escape parentheses in title for markdown image alt text
-        local title_escaped="${title//\(/\\\(}"
-        title_escaped="${title_escaped//\)/\\\)}"
-        image_cell="![$title_escaped]($image_url)"
-      fi
-      
-      # Handle title
-      local title_cell="${title:-—}"
-      
-      # Handle version
-      local version_cell="${version:-—}"
-      
-      # Handle author
-      local author_cell="${author:-—}"
-      
-      # Handle example
-      local example_cell="—"
-      if [[ -n "$example_url" && "$example_url" != "null" ]]; then
-        local example_link="$example_url"
-        if [[ "$example_link" != http* ]]; then
-          # Convert relative to absolute URL
-          if [[ -n "$base_url_clean" ]]; then
-            example_link="$base_url_clean/$example_link"
-          fi
-        fi
-        example_cell="[Example]($example_link)"
-      fi
-      
-      # Handle description (escape pipe characters and newlines for markdown table)
-      local desc_cell="${description:-—}"
-      desc_cell="${desc_cell//|/&#124;}"
-      desc_cell="${desc_cell//$'\n'/ }"
-      
-      echo "| $image_cell | $title_cell | $version_cell | $author_cell | $example_cell | $desc_cell |"
-    done
-    
-    echo ""
-    echo "Total: $item_count items"
-  } > "$md_path"
-  
-  echo "$md_filename"
-}
-
 # Build example HTML if needed
 build_example_if_needed() {
   local example_path="$1"
@@ -419,13 +333,6 @@ pack_folder_store() {
   cp "$tmp_index" "$out_index"
   local item_count=$(jq -r ".items | length" "$out_index")
   echo "  📊 Total: $item_count items"
-  
-  # Generate markdown index
-  local md_filename
-  md_filename="$(generate_store_index_md "$store_name" "$store_index" "$BASE_URL")"
-  if [[ -n "$md_filename" ]]; then
-    echo "  📄 Store index: ${BASE_URL:+$BASE_URL/}$md_filename"
-  fi
 }
 
 copy_or_stub_defold_deps() {
@@ -437,13 +344,6 @@ copy_or_stub_defold_deps() {
     jq -n '{schema_version:1,"items":[]}' > "$out_index"
   fi
   echo "📦 Store: $store_name"
-  
-  # Generate markdown index
-  local md_filename
-  md_filename="$(generate_store_index_md "$store_name" "$store_index" "$BASE_URL")"
-  if [[ -n "$md_filename" ]]; then
-    echo "  📄 Store index: ${BASE_URL:+$BASE_URL/}$md_filename"
-  fi
 }
 
 # ---------- main ----------
@@ -463,7 +363,6 @@ while IFS= read -r line; do
   store_objs+=("$line")
 done < <(jq -c '.stores[]' "$SRC_STORES_JSON")
 
-md_files=()
 for s in "${store_objs[@]}"; do
   name="$(jq -r '.name' <<<"$s")"
   type="$(jq -r '.type' <<<"$s")"
@@ -486,12 +385,6 @@ for s in "${store_objs[@]}"; do
       exit 1
       ;;
   esac
-  
-  # Collect markdown filename
-  md_filename="${index%.json}_index.md"
-  if [[ -f "$DIST_DIR/$md_filename" ]]; then
-    md_files+=("$md_filename")
-  fi
 done
 
 echo ""
@@ -510,12 +403,4 @@ jq --arg base "$BASE_URL" --arg updated_at "$updated_at" '
 echo "✅ Build complete: $DIST_DIR/stores.json"
 if [[ -n "$BASE_URL" ]]; then
   echo "🌐 Published at: $BASE_URL/stores.json"
-fi
-
-echo ""
-if [[ ${#md_files[@]} -gt 0 ]]; then
-  echo "📄 Generated store index pages:"
-  for md_file in "${md_files[@]}"; do
-    echo "   ${BASE_URL:+$BASE_URL/}$md_file"
-  done
 fi
