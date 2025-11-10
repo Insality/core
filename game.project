@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /widget/Insality/external_image/example/example_external_image.collectionc
+main_collection = /widget/NaakkaaDev/navigation_handler/example/example_navigation_handler.collectionc
 
 [script]
 shared_state = 1

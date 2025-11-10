@@ -18,7 +18,9 @@
 		"hash",
 		"on_input",
 		"label",
-		"socket"
+		"socket",
+		"update",
+		"on_message"
 	],
 	"Lua.completion.autoRequire": false,
 	"Lua.workspace.ignoreDir": [
