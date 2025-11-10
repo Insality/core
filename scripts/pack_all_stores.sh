@@ -283,9 +283,21 @@ pack_folder_store() {
     if [[ -n "$api" ]]; then
       if [[ "$api" =~ ^https?:// ]]; then
         api_url="$api"
-      elif [[ -f "$asset_dir/$api" ]]; then
-        local relative_path="${asset_dir#$ASSETS_ROOT/}/$api"
-        api_url="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/blob/$GITHUB_BRANCH/$relative_path"
+      elif [[ "$api" =~ ^/ ]]; then
+        # Absolute path from repository root
+        local api_file_path="$ASSETS_ROOT$api"
+        if [[ -f "$api_file_path" ]]; then
+          local relative_path="${api#/}"  # Remove leading slash
+          api_url="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/blob/$GITHUB_BRANCH/$relative_path"
+        fi
+      else
+        # Relative path from asset directory (may start with ./)
+        local api_normalized="$api"
+        [[ "$api_normalized" =~ ^\./ ]] && api_normalized="${api_normalized#./}"  # Remove leading ./
+        if [[ -f "$asset_dir/$api_normalized" ]]; then
+          local relative_path="${asset_dir#$ASSETS_ROOT/}/$api_normalized"
+          api_url="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/blob/$GITHUB_BRANCH/$relative_path"
+        fi
       fi
     fi
 
