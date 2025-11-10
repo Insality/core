@@ -29,7 +29,8 @@ Temporary Items
 *~
 *.swp
 *.swo
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 /.editor_settings
 /.internal
@@ -37,5 +38,4 @@ Temporary Items
 
 doc.json
 deployer_version_settings.txt
-
 deployer_version_settings.ini
