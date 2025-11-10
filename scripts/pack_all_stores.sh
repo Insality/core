@@ -182,7 +182,7 @@ pack_folder_store() {
       continue
     fi
 
-    local id version title author description api author_url image_rel depends tags example
+    local id version title author description api author_url image_rel depends tags example unlisted
     id="$(jq -r '.id // "'$asset_folder'"' "$manifest")"
     version="$(jq -r '.version' "$manifest")"
     title="$(jq -r '.title // "'$id'"' "$manifest")"
@@ -195,6 +195,7 @@ pack_folder_store() {
     image_rel="$(jq -r '.image // empty' "$manifest")"
     depends="$(jq -c '.depends // []' "$manifest")"
     tags="$(jq -c '.tags // []' "$manifest")"
+    unlisted="$(jq -c '.unlisted // false' "$manifest")"
 
     if [[ -z "$version" || "$version" == "null" ]]; then
       echo "  ❌ ERROR: $author:$id@$version has no version" >&2
@@ -305,7 +306,7 @@ pack_folder_store() {
       --arg api "$api_url" --arg author_url "$author_url" --arg example_url "$example_url" \
       --arg image "$image_url" --arg zip_url "$zip_url" --arg json_zip_url "$json_zip_url" --arg sha256 "$sha256" \
       --arg manifest_url "$manifest_url" --arg size "$size" \
-      --argjson depends "$depends" --argjson tags "$tags" \
+      --argjson depends "$depends" --argjson tags "$tags" --argjson unlisted "$unlisted" \
       '{ id:$id, version:$version, title:$title,
          author:(if $author == "" then null else $author end),
          description:(if $description == "" then null else $description end),
@@ -315,7 +316,7 @@ pack_folder_store() {
          example_url:(if $example_url == "" then null else $example_url end),
          manifest_url:$manifest_url,
          zip_url:$zip_url, json_zip_url:$json_zip_url, sha256:$sha256, size:($size|tonumber),
-         depends:$depends, tags:$tags }')"
+         depends:$depends, tags:$tags, unlisted:$unlisted }')"
 
     # Add item to items array
     jq --argjson item "$item" '.items += [$item]' "$tmp_index" > "${tmp_index}.tmp" && mv "${tmp_index}.tmp" "$tmp_index"

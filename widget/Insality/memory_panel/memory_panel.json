@@ -1,7 +1,8 @@
 {
 	"author": "Insality",
 	"id": "memory_panel",
-	"version": 2,
+	"version": 1,
+	"depends": [ "Insality:mini_graph@1" ],
 	"title": "Memory Panel",
 	"description": "Shows current memory usage and graph of the last 3 seconds of performance",
 	"image": "memory_panel.png",

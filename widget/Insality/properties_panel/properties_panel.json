@@ -1,7 +1,7 @@
 {
 	"author": "Insality",
 	"id": "properties_panel",
-	"version": 2,
+	"version": 1,
 	"title": "Properties Panel",
 	"description": "Allows to create a panel with properties",
 	"image": "properties_panel.png",

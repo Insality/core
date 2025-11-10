@@ -1,7 +1,7 @@
 {
 	"author": "Insality",
 	"id": "fps_panel",
-	"version": 3,
+	"version": 1,
 	"depends": [ "Insality:mini_graph@1" ],
 	"title": "FPS Panel",
 	"description": "Shows current FPS and graph of the last 3 seconds of performance",
