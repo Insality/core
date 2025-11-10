@@ -26,7 +26,7 @@ nodes {
   id: "mini_graph"
   parent: "root"
   inherit_alpha: true
-  template: "/druid/widget/mini_graph/mini_graph.gui"
+  template: "/widget/Insality/mini_graph/mini_graph.gui"
 }
 nodes {
   type: TYPE_BOX

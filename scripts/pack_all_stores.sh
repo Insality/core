@@ -85,6 +85,7 @@ build_example_if_needed() {
   local id="$3"
   local version="$4"
   local asset_dir="$5"
+  local title="$6"
 
   if [[ -z "$example_path" || "$example_path" == "null" ]]; then
     echo ""
@@ -110,6 +111,9 @@ build_example_if_needed() {
   local tmp_ini; tmp_ini="$(mktemp)"
   echo "[bootstrap]" > "$tmp_ini"
   echo "main_collection = $collection_path_for_ini" >> "$tmp_ini"
+  echo "" >> "$tmp_ini"
+  echo "[project]" >> "$tmp_ini"
+  echo "title = \"${title} v${version} | ${author} | Core Asset Store\"" >> "$tmp_ini"
 
   ensure_dir "$example_output_dir"
 
@@ -291,7 +295,7 @@ pack_folder_store() {
     if [[ -z "$example_url" || "$example_url" == "null" ]]; then
       if [[ -n "$example" && "$example" != "null" ]]; then
         local built_example_url
-        built_example_url="$(build_example_if_needed "$example" "$author" "$id" "$version" "$asset_dir")"
+        built_example_url="$(build_example_if_needed "$example" "$author" "$id" "$version" "$asset_dir" "$title")"
         [[ -n "$built_example_url" ]] && example_url="$built_example_url"
       fi
     fi
