@@ -92,6 +92,22 @@ build_example_if_needed() {
     return
   fi
 
+  local collection_proxy_path="$ROOT/example/example_proxy.collectionproxy"
+  if [[ ! -f "$collection_proxy_path" ]]; then
+    echo "  ❌ ERROR: Missing $collection_proxy_path" >&2
+    echo ""
+    return
+  fi
+
+  local collection_path_for_proxy="$example_path"
+
+  local tmp_proxy_backup
+  tmp_proxy_backup="$(mktemp)"
+  cp "$collection_proxy_path" "$tmp_proxy_backup"
+  trap 'cp "$tmp_proxy_backup" "$collection_proxy_path"; rm -f "$tmp_proxy_backup"; trap - RETURN' RETURN
+
+  printf 'collection: "%s"\n' "$collection_path_for_proxy" > "$collection_proxy_path"
+
   local example_dir_name="${author}:${id}@${version}"
   local example_output_dir="$DIST_DIR/examples/$example_dir_name"
   local example_url="${BASE_URL:+$BASE_URL/}examples/$example_dir_name/index.html"
@@ -102,26 +118,11 @@ build_example_if_needed() {
     return
   fi
 
-  local collection_path_for_ini="$example_path"
-  if [[ "$collection_path_for_ini" != /* ]]; then
-    collection_path_for_ini="/$collection_path_for_ini"
-  fi
-
-  # Create temporary INI file
-  local tmp_ini; tmp_ini="$(mktemp)"
-  echo "[bootstrap]" > "$tmp_ini"
-  echo "main_collection = $collection_path_for_ini" >> "$tmp_ini"
-
   ensure_dir "$example_output_dir"
-
-  # Copy INI to root for deployer
-  local ini_in_root="$ROOT/build_ini.ini"
-  [[ -f "$ini_in_root" ]] && rm -f "$ini_in_root"
-  cp "$tmp_ini" "$ini_in_root"
 
   # Build using deployer
   local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/refs/heads/update/deployer.sh"
-  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings ./build_ini.ini) >&2; then
+  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr) >&2; then
     # Find the most recently created index.html
     local found_html=""
     found_html="$(find "$ROOT/dist/bundle" -name "index.html" -type f -path "*/_html/*" 2>/dev/null | head -1)"
@@ -144,8 +145,7 @@ build_example_if_needed() {
     echo ""
   fi
 
-  # Cleanup
-  rm -f "$tmp_ini" "$ini_in_root"
+  # Cleanup handled by trap for proxy file
 }
 
 pack_folder_store() {

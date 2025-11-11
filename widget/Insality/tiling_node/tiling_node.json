@@ -6,7 +6,7 @@
 	"description": "Druid component for creating tiled textures with custom shader. Supports animation, margins, offsets and dynamic repeat count based on node size",
 	"api": "tiling_node.md",
 	"author_url": "https://github.com/Insality",
-	"example": "/widget/Insality/tiling_node/example/example_tiling_node.collectionc",
+	"example": "/widget/Insality/tiling_node/example/example_tiling_node.collection",
 	"tags": ["GUI", "shader"],
 	"content": [
 		"tiling_node.lua",

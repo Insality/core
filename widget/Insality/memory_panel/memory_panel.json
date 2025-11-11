@@ -7,7 +7,7 @@
 	"description": "Shows current memory usage and graph of the last 3 seconds of performance",
 	"image": "memory_panel.png",
 	"api": "memory_panel.md",
-	"example": "/widget/Insality/memory_panel/example/example_memory_panel.collectionc",
+	"example": "/widget/Insality/memory_panel/example/example_memory_panel.collection",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
 	"content": [
