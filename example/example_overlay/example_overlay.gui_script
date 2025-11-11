@@ -8,6 +8,14 @@ local properties_panel = require("widget.Insality.properties_panel.properties_pa
 ---@field memory_panel widget.memory_panel
 ---@field fps_panel widget.fps_panel
 ---@field properties_panel widget.properties_panel
+---@field button_source druid.button
+---@field example_code_url string
+
+---@param self script.example_overlay
+local function on_source_click(self)
+	sys.open_url(self.example_code_url, { target = "_blank" })
+end
+
 
 local function load_examples(self, url, on_load)
 	http.request(url, "GET", function(_, _, response)
@@ -121,6 +129,7 @@ function init(self)
 	self.druid = druid.new(self)
 	gui.set_render_order(15)
 
+	self.button_source = self.druid:new_button("button_source", on_source_click)
 	self.memory_panel = self.druid:new_widget(memory_panel,"memory_panel")
 	self.fps_panel = self.druid:new_widget(fps_panel,"fps_panel")
 	self.properties_panel = self.druid:new_widget(properties_panel,"properties_panel")
@@ -130,6 +139,13 @@ function init(self)
 	load_examples(self, "https://insality.github.io/core/druid_widget_store.json", function(data)
 		create_pages(self, data.items)
 	end)
+
+	self.example_code_url = sys.get_config_string("example.example_url")
+	if not self.example_code_url or self.example_code_url == "" then
+		self.example_code_url = nil
+	end
+
+	--gui.set_enabled(self.button_source.node, self.example_code_url ~= nil)
 end
 
 ---@param self script.example_overlay

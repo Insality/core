@@ -86,6 +86,10 @@ build_example_if_needed() {
   local version="$4"
   local asset_dir="$5"
   local title="$6"
+  local description="$7"
+  local api_url="$8"
+  local author_url="$9"
+  local example_code_url="${10}"
 
   if [[ -z "$example_path" || "$example_path" == "null" ]]; then
     echo ""
@@ -104,7 +108,12 @@ build_example_if_needed() {
   local tmp_proxy_backup
   tmp_proxy_backup="$(mktemp)"
   cp "$collection_proxy_path" "$tmp_proxy_backup"
-  trap 'cp "$tmp_proxy_backup" "$collection_proxy_path"; rm -f "$tmp_proxy_backup"; trap - RETURN' RETURN
+
+  # Initialize temporary files variables (will be set later)
+  local tmp_ini=""
+
+  # Cleanup function: restore proxy file and remove temporary files
+  trap 'cp "$tmp_proxy_backup" "$collection_proxy_path" 2>/dev/null || true; rm -f "$tmp_proxy_backup" "$tmp_ini"; trap - RETURN' RETURN
 
   printf 'collection: "%s"\n' "$collection_path_for_proxy" > "$collection_proxy_path"
 
@@ -120,9 +129,33 @@ build_example_if_needed() {
 
   ensure_dir "$example_output_dir"
 
+  # Create INI file with example information
+  tmp_ini="$(mktemp)"
+  {
+    echo "[example]"
+    echo "author = ${author:-}"
+    echo "id = ${id:-}"
+    echo "version = ${version:-}"
+    if [[ -n "$example_code_url" && "$example_code_url" != "null" && "$example_code_url" != "" ]]; then
+      echo "example_code = ${example_code_url}"
+    fi
+    if [[ -n "$title" && "$title" != "null" && "$title" != "" ]]; then
+      echo "title = ${title}"
+    fi
+    if [[ -n "$description" && "$description" != "null" && "$description" != "" ]]; then
+      echo "description = ${description}"
+    fi
+    if [[ -n "$api_url" && "$api_url" != "null" && "$api_url" != "" ]]; then
+      echo "api = ${api_url}"
+    fi
+    if [[ -n "$author_url" && "$author_url" != "null" && "$author_url" != "" ]]; then
+      echo "author_url = ${author_url}"
+    fi
+  } > "$tmp_ini"
+
   # Build using deployer
   local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/refs/heads/update/deployer.sh"
-  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr) >&2; then
+  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings "$tmp_ini") >&2; then
     # Find the most recently created index.html
     local found_html=""
     found_html="$(find "$ROOT/dist/bundle" -name "index.html" -type f -path "*/_html/*" 2>/dev/null | head -1)"
@@ -145,7 +178,7 @@ build_example_if_needed() {
     echo ""
   fi
 
-  # Cleanup handled by trap for proxy file
+  # Cleanup handled by trap (proxy file restored, temp files removed)
 }
 
 pack_folder_store() {
@@ -182,7 +215,7 @@ pack_folder_store() {
       continue
     fi
 
-    local id version title author description api author_url image_rel depends tags example unlisted
+    local id version title author description api author_url image_rel depends tags example example_code unlisted
     id="$(jq -r '.id // "'$asset_folder'"' "$manifest")"
     version="$(jq -r '.version' "$manifest")"
     title="$(jq -r '.title // "'$id'"' "$manifest")"
@@ -191,6 +224,7 @@ pack_folder_store() {
     api="$(jq -r '.api // empty' "$manifest")"
     author_url="$(jq -r '.author_url // empty' "$manifest")"
     example="$(jq -r '.example // empty' "$manifest")"
+    example_code="$(jq -r '.example_code // empty' "$manifest")"
     example_url="$(jq -r '.example_url // empty' "$manifest")"
     image_rel="$(jq -r '.image // empty' "$manifest")"
     depends="$(jq -c '.depends // []' "$manifest")"
@@ -244,7 +278,7 @@ pack_folder_store() {
     local zip_content
     zip_content="$(zipinfo -1 "$zip_path" | jq -R -s -c 'split("\n") | map(select(length > 0 and (. | endswith("/") | not)))')"
 
-    local sha256 size zip_url image_url="" json_zip_url manifest_url api_url=""
+    local sha256 size zip_url image_url="" json_zip_url manifest_url api_url="" example_code_url=""
     sha256="$(get_sha256 "$zip_path")"
     size="$(get_file_size "$zip_path")"
     zip_url="${BASE_URL:+$BASE_URL/}$content_folder/$zip_name"
@@ -301,11 +335,33 @@ pack_folder_store() {
       fi
     fi
 
+    # Generate GitHub URL for example code
+    if [[ -n "$example_code" ]]; then
+      if [[ "$example_code" =~ ^https?:// ]]; then
+        example_code_url="$example_code"
+      elif [[ "$example_code" =~ ^/ ]]; then
+        # Absolute path from repository root
+        local example_code_file_path="$ASSETS_ROOT$example_code"
+        if [[ -f "$example_code_file_path" ]]; then
+          local relative_path="${example_code#/}"  # Remove leading slash
+          example_code_url="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/blob/$GITHUB_BRANCH/$relative_path"
+        fi
+      else
+        # Relative path from asset directory (may start with ./)
+        local example_code_normalized="$example_code"
+        [[ "$example_code_normalized" =~ ^\./ ]] && example_code_normalized="${example_code_normalized#./}"  # Remove leading ./
+        if [[ -f "$asset_dir/$example_code_normalized" ]]; then
+          local relative_path="${asset_dir#$ASSETS_ROOT/}/$example_code_normalized"
+          example_code_url="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/blob/$GITHUB_BRANCH/$relative_path"
+        fi
+      fi
+    fi
+
     # Build example if specified and example_url is not already set
     if [[ -z "$example_url" || "$example_url" == "null" ]]; then
       if [[ -n "$example" && "$example" != "null" ]]; then
         local built_example_url
-        built_example_url="$(build_example_if_needed "$example" "$author" "$id" "$version" "$asset_dir" "$title")"
+        built_example_url="$(build_example_if_needed "$example" "$author" "$id" "$version" "$asset_dir" "$title" "$description" "$api_url" "$author_url" "$example_code_url")"
         [[ -n "$built_example_url" ]] && example_url="$built_example_url"
       fi
     fi
@@ -316,7 +372,7 @@ pack_folder_store() {
       --arg id "$id" --arg version "$version" --arg title "$title" \
       --arg author "$author" --arg description "$description" \
       --arg api "$api_url" --arg author_url "$author_url" --arg example_url "$example_url" \
-      --arg image "$image_url" --arg zip_url "$zip_url" --arg json_zip_url "$json_zip_url" --arg sha256 "$sha256" \
+      --arg example_code "$example_code_url" --arg image "$image_url" --arg zip_url "$zip_url" --arg json_zip_url "$json_zip_url" --arg sha256 "$sha256" \
       --arg manifest_url "$manifest_url" --arg size "$size" \
       --argjson depends "$depends" --argjson tags "$tags" --argjson unlisted "$unlisted" \
       '{ id:$id, version:$version, title:$title,
@@ -326,6 +382,7 @@ pack_folder_store() {
          author_url:(if $author_url == "" then null else $author_url end),
          image:(if $image == "" then null else $image end),
          example_url:(if $example_url == "" then null else $example_url end),
+         example_code:(if $example_code == "" then null else $example_code end),
          manifest_url:$manifest_url,
          zip_url:$zip_url, json_zip_url:$json_zip_url, sha256:$sha256, size:($size|tonumber),
          depends:$depends, tags:$tags, unlisted:$unlisted }')"
@@ -341,6 +398,7 @@ pack_folder_store() {
     [[ -n "$image_url" ]] && echo "     image: $image_url"
     [[ -n "$api_url" ]] && echo "     api: $api_url"
     [[ -n "$example_url" ]] && echo "     example: $example_url"
+    [[ -n "$example_code_url" ]] && echo "     example_code: $example_code_url"
   done
 
   cp "$tmp_index" "$out_index"

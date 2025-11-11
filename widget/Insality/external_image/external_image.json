@@ -7,6 +7,7 @@
 	"image": "external_image.png",
 	"api": "external_image.md",
 	"example": "/widget/Insality/external_image/example/example_external_image.collection",
+	"example_code": "/widget/Insality/external_image/example/example_external_image.gui_script",
 	"author_url": "https://github.com/Insality",
 	"tags": ["GUI"],
 	"content": [

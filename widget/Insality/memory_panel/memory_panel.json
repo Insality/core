@@ -8,6 +8,7 @@
 	"image": "memory_panel.png",
 	"api": "memory_panel.md",
 	"example": "/widget/Insality/memory_panel/example/example_memory_panel.collection",
+	"example_code": "/widget/Insality/memory_panel/example/example_memory_panel.gui_script",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
 	"content": [
