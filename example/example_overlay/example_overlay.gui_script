@@ -11,6 +11,35 @@ local function load_examples(self, url, on_load)
 	end)
 end
 
+
+local function is_current_url(url)
+	if not html5 then
+		return false
+	end
+
+	--local example_name = html5.run("new URLSearchParams(window.location.search).get('example')")
+	local current_url = html5.run("window.location.href")
+	if not current_url or not url then
+		return false
+	end
+
+	-- Keep url address without query parameters
+	local current_url_without_query = current_url:match("^https?://[^?]+")
+	local target_url_without_query = url:match("^https?://[^?]+")
+
+	-- Handle nil cases
+	if not current_url_without_query or not target_url_without_query then
+		return false
+	end
+
+	-- Normalize trailing slashes for comparison
+	current_url_without_query = current_url_without_query:gsub("/+$", "")
+	target_url_without_query = target_url_without_query:gsub("/+$", "")
+
+	return current_url_without_query == target_url_without_query
+end
+
+
 function init(self)
 	self.druid = druid.new(self)
 	gui.set_render_order(15)
@@ -24,15 +53,25 @@ function init(self)
 		local items = data.items
 		for index = 1, #items do
 			local item = items[index]
-			self.properties_panel:add_button(function(button)
-				button:set_text_property(item.title)
-				button.button.on_click:subscribe(function()
-					pprint(item)
-					if item.example_url then
-						sys.open_url(item.example_url)
+			local target_url = item.example_url
+			if target_url then
+				self.properties_panel:add_button_small(function(button)
+					local is_same_url = is_current_url(target_url)
+
+					button:set_text_property(item.title)
+					gui.set_font(button.text_name.node, "druid_text_regular")
+
+					if is_same_url then
+						button:set_input_enabled(false)
+						gui.set_alpha(button.button.node, 0.5)
+						gui.set_font(button.text_name.node, "druid_text_bold")
+					else
+						button.button.on_click:subscribe(function()
+							sys.open_url(target_url)
+						end)
 					end
 				end)
-			end)
+			end
 		end
 	end)
 end
