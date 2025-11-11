@@ -25,7 +25,6 @@ local function is_current_url(url)
 
 	--local example_name = html5.run("new URLSearchParams(window.location.search).get('example')")
 	local current_url = html5.run("window.location.href")
-	current_url = "https://insality.github.io/core/examples/Insality:external_image@1/index.html"
 	if not current_url or not url then
 		return false
 	end
