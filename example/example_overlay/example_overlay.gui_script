@@ -3,6 +3,12 @@ local memory_panel = require("widget.Insality.memory_panel.memory_panel")
 local fps_panel = require("widget.Insality.fps_panel.fps_panel")
 local properties_panel = require("widget.Insality.properties_panel.properties_panel")
 
+---@class script.example_overlay
+---@field druid druid.instance
+---@field memory_panel widget.memory_panel
+---@field fps_panel widget.fps_panel
+---@field properties_panel widget.properties_panel
+
 local function load_examples(self, url, on_load)
 	http.request(url, "GET", function(_, _, response)
 		if response.status == 200 or response.status == 304 then
@@ -19,13 +25,14 @@ local function is_current_url(url)
 
 	--local example_name = html5.run("new URLSearchParams(window.location.search).get('example')")
 	local current_url = html5.run("window.location.href")
+	current_url = "https://insality.github.io/core/examples/Insality:external_image@1/index.html"
 	if not current_url or not url then
 		return false
 	end
 
-	-- Keep url address without query parameters
-	local current_url_without_query = current_url:match("^https?://[^?]+")
-	local target_url_without_query = url:match("^https?://[^?]+")
+	-- Keep url address without query parameters and hash
+	local current_url_without_query = current_url:match("^https?://[^?#]+")
+	local target_url_without_query = url:match("^https?://[^?#]+")
 
 	-- Handle nil cases
 	if not current_url_without_query or not target_url_without_query then
@@ -36,10 +43,81 @@ local function is_current_url(url)
 	current_url_without_query = current_url_without_query:gsub("/+$", "")
 	target_url_without_query = target_url_without_query:gsub("/+$", "")
 
+	-- Normalize case: domains are case-insensitive, so convert to lowercase for comparison
+	current_url_without_query = string.lower(current_url_without_query)
+	target_url_without_query = string.lower(target_url_without_query)
+
 	return current_url_without_query == target_url_without_query
 end
 
 
+---@param self script.example_overlay
+---@param items table[]
+local function render_items(self, items)
+	for index = 1, #items do
+		local item = items[index]
+		local target_url = item.example_url
+		self.properties_panel:add_button_small(function(button)
+			local is_same_url = is_current_url(target_url)
+
+			button:set_text_property(item.title)
+			gui.set_font(button.text_name.node, "druid_text_regular")
+
+			if is_same_url then
+				button:set_input_enabled(false)
+				gui.set_alpha(button.button.node, 0.5)
+				gui.set_font(button.text_name.node, "druid_text_bold")
+			else
+				button.button.on_click:subscribe(function()
+					sys.open_url(target_url)
+				end)
+			end
+		end)
+	end
+end
+
+
+---@param self script.example_overlay
+---@param items table[]
+local function create_pages(self, items)
+	-- Группируем items по авторам
+	local items_by_author = {}
+	for index = 1, #items do
+		local item = items[index]
+		local author = item.author or "Unknown"
+		if not items_by_author[author] then
+			items_by_author[author] = {}
+		end
+		if item.example_url then
+			table.insert(items_by_author[author], item)
+		end
+	end
+
+	-- Сортируем авторов по алфавиту
+	local authors = {}
+	for author in pairs(items_by_author) do
+		table.insert(authors, author)
+	end
+	table.sort(authors)
+
+	-- Рендерим items для каждого автора
+	for i = 1, #authors do
+		local author = authors[i]
+		local author_items = items_by_author[author]
+		self.properties_panel:add_button(function(button)
+			button:set_text_property(author .. " (" .. #author_items .. ")")
+			button.button.on_click:subscribe(function()
+				self.properties_panel:next_scene()
+				self.properties_panel:set_header(author)
+				render_items(self, author_items)
+			end)
+		end)
+		--render_items(self, author_items)
+	end
+end
+
+
+---@param self script.example_overlay
 function init(self)
 	self.druid = druid.new(self)
 	gui.set_render_order(15)
@@ -48,48 +126,31 @@ function init(self)
 	self.fps_panel = self.druid:new_widget(fps_panel,"fps_panel")
 	self.properties_panel = self.druid:new_widget(properties_panel,"properties_panel")
 	self.properties_panel:set_hidden(true)
+	self.properties_panel:set_header("Druid Widgets")
 
 	load_examples(self, "https://insality.github.io/core/druid_widget_store.json", function(data)
-		local items = data.items
-		for index = 1, #items do
-			local item = items[index]
-			local target_url = item.example_url
-			if target_url then
-				self.properties_panel:add_button_small(function(button)
-					local is_same_url = is_current_url(target_url)
-
-					button:set_text_property(item.title)
-					gui.set_font(button.text_name.node, "druid_text_regular")
-
-					if is_same_url then
-						button:set_input_enabled(false)
-						gui.set_alpha(button.button.node, 0.5)
-						gui.set_font(button.text_name.node, "druid_text_bold")
-					else
-						button.button.on_click:subscribe(function()
-							sys.open_url(target_url)
-						end)
-					end
-				end)
-			end
-		end
+		create_pages(self, data.items)
 	end)
 end
 
+---@param self script.example_overlay
 function final(self)
 	self.druid:final()
 end
 
+---@param self script.example_overlay
 function update(self, dt)
 	gui.set_enabled(self.memory_panel.root, not self.properties_panel:is_hidden())
 	gui.set_enabled(self.fps_panel.root, not self.properties_panel:is_hidden())
 	self.druid:update(dt)
 end
 
+---@param self script.example_overlay
 function on_message(self, message_id, message, sender)
 	self.druid:on_message(message_id, message, sender)
 end
 
+---@param self script.example_overlay
 function on_input(self, action_id, action)
 	return self.druid:on_input(action_id, action)
 end
