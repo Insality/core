@@ -1,10 +1,4 @@
--- Title: FPS Panel
--- Description: Shows current FPS and graph of the last 3 seconds of performance
--- Author: Insality <https://github.com/Insality>
--- Widget: fps_panel
--- Depends: insality@mini_graph
--- Tags: debug, system
-
+-- Insality:fps_panel@1
 local helper = require("druid.helper")
 local mini_graph = require("widget.Insality.mini_graph.mini_graph")
 

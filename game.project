@@ -25,6 +25,7 @@ version = 1.0
 dependencies#0 = https://github.com/Insality/druid/archive/2a169da3afd8bb94eff10fe26eea830c9603f648.zip
 dependencies#1 = https://github.com/Insality/defold-event/archive/refs/tags/13.zip
 dependencies#2 = https://github.com/Insality/decore/archive/refs/tags/2.zip
+dependencies#3 = https://github.com/subsoap/defos/archive/refs/tags/v2.8.3.zip
 
 [input]
 game_binding = /builtins/input/all.input_bindingc
@@ -35,4 +36,9 @@ max_count = 128
 
 [native_extension]
 app_manifest = /scripts/core.appmanifest
+
+[render]
+clear_color_red = 0.13
+clear_color_green = 0.14
+clear_color_blue = 0.16
 
