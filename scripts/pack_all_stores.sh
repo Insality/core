@@ -78,40 +78,6 @@ encode_base64() {
   fi
 }
 
-# Add or update version header in main Lua file
-add_version_header() {
-  local asset_dir="$1"
-  local author="$2"
-  local id="$3"
-  local version="$4"
-
-  # Find main .lua file - must be named as widget id
-  local main_lua="$asset_dir/${id}.lua"
-
-  if [[ ! -f "$main_lua" ]]; then
-    return 0  # Main .lua file not found, skip
-  fi
-
-  local version_header="-- ${author}:${id}@${version}"
-  local version_pattern="^-- ${author}:${id}@[0-9]+"
-
-  # Remove any existing version headers for this widget (in case of duplicates)
-  if [[ "$(uname)" == "Darwin" ]]; then
-    # macOS
-    sed -i '' "/$version_pattern/d" "$main_lua"
-  else
-    # Linux
-    sed -i "/$version_pattern/d" "$main_lua"
-  fi
-
-  # Add version header at the beginning of file
-  local tmp_file
-  tmp_file="$(mktemp)"
-  printf '%s\n' "$version_header" > "$tmp_file"
-  cat "$main_lua" >> "$tmp_file"
-  mv "$tmp_file" "$main_lua"
-}
-
 # Build example HTML if needed
 build_example_if_needed() {
   local example_path="$1"
@@ -257,9 +223,6 @@ pack_folder_store() {
       echo "  ❌ ERROR: $author:$id@$version has no content to pack" >&2
       exit 1
     fi
-
-    # Add or update version header in main Lua file
-    add_version_header "$asset_dir" "$author" "$id" "$version"
 
     # ZIP name format: author:id@version.zip
     local zip_name="${author}:${id}@${version}.zip"

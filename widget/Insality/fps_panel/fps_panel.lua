@@ -1,4 +1,3 @@
--- Insality:fps_panel@1
 local helper = require("druid.helper")
 local mini_graph = require("widget.Insality.mini_graph.mini_graph")
 
