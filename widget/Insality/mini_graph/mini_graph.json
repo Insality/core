@@ -6,7 +6,7 @@
 	"description": "Widget to display a several lines with different height in a row",
 	"image": "mini_graph.png",
 	"api": "mini_graph.md",
-	"example_url": "https://insality.github.io/druid/?example=ui_example_widget_mini_graph",
+	"example": "/widget/Insality/mini_graph/example/example_mini_graph.collection",
 	"author_url": "https://github.com/Insality",
 	"tags": ["debug", "system"],
 	"content": [

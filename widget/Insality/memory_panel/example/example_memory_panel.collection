@@ -1,4 +1,4 @@
-name: "memory_panel"
+name: "example_memory_panel"
 scale_along_z: 0
 embedded_instances {
   id: "go"
