@@ -1,7 +1,7 @@
 script: "/widget/NaakkaaDev/navigation_handler/example/example_navigation_handler.gui_script"
 nodes {
   position {
-    x: 483.0
+    x: 432.0
     y: 703.0
   }
   size {
@@ -19,7 +19,7 @@ nodes {
 }
 nodes {
   position {
-    x: 1047.0
+    x: 996.0
     y: 703.0
   }
   size {
@@ -37,7 +37,7 @@ nodes {
 }
 nodes {
   position {
-    x: 1574.0
+    x: 1523.0
     y: 703.0
   }
   size {

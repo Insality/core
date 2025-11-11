@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /widget/NaakkaaDev/navigation_handler/example/example_navigation_handler.collectionc
+main_collection = /example/loader.collectionc
 
 [script]
 shared_state = 1

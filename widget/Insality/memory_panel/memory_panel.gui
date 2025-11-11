@@ -42,8 +42,10 @@ nodes {
 }
 nodes {
   type: TYPE_TEXT
+  text: "Memory"
   id: "mini_graph/text_header"
   parent: "mini_graph/header"
+  overridden_fields: 8
   template_node_child: true
 }
 nodes {

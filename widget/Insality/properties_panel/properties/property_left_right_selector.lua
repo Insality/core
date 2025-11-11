@@ -1,6 +1,6 @@
 local event = require("event.event")
 
----@class druid.widget.property_left_right_selector: druid.widget
+---@class widget.property_left_right_selector: druid.widget
 ---@field root node
 ---@field druid druid.instance
 ---@field text_name druid.text
