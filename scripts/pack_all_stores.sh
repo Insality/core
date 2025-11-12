@@ -126,8 +126,10 @@ build_example_if_needed() {
 
   ensure_dir "$example_output_dir"
 
-  # Create INI file with example information in project root
-  local ini_file="$ROOT/build.ini"
+  # Remove existing INI file if it exists, then create new one
+  local ini_file="build.ini"
+  rm -f "$ROOT/$ini_file"
+
   {
     echo "[example]"
     echo "author = ${author:-}"
@@ -148,7 +150,7 @@ build_example_if_needed() {
     if [[ -n "$author_url" && "$author_url" != "null" && "$author_url" != "" ]]; then
       echo "author_url = ${author_url}"
     fi
-  } > "$ini_file"
+  } > "$ROOT/$ini_file"
 
   # Build using deployer
   local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/refs/heads/update/deployer.sh"
