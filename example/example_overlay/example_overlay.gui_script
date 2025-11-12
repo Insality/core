@@ -56,7 +56,6 @@ end
 ---@param self script.example_overlay
 ---@param items table[]
 local function create_pages(self, items)
-	-- Группируем items по авторам
 	local items_by_author = {}
 	for index = 1, #items do
 		local item = items[index]
@@ -69,14 +68,12 @@ local function create_pages(self, items)
 		end
 	end
 
-	-- Сортируем авторов по алфавиту
 	local authors = {}
 	for author in pairs(items_by_author) do
 		table.insert(authors, author)
 	end
 	table.sort(authors)
 
-	-- Рендерим items для каждого автора
 	for i = 1, #authors do
 		local author = authors[i]
 		local author_items = items_by_author[author]
@@ -88,7 +85,6 @@ local function create_pages(self, items)
 				render_items(self, author_items)
 			end)
 		end)
-		--render_items(self, author_items)
 	end
 end
 
