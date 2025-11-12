@@ -109,11 +109,8 @@ build_example_if_needed() {
   tmp_proxy_backup="$(mktemp)"
   cp "$collection_proxy_path" "$tmp_proxy_backup"
 
-  # Initialize temporary files variables (will be set later)
-  local tmp_ini=""
-
-  # Cleanup function: restore proxy file and remove temporary files
-  trap 'cp "$tmp_proxy_backup" "$collection_proxy_path" 2>/dev/null || true; rm -f "$tmp_proxy_backup" "$tmp_ini"; trap - RETURN' RETURN
+  # Cleanup function: restore proxy file and remove INI file
+  trap 'cp "$tmp_proxy_backup" "$collection_proxy_path" 2>/dev/null || true; rm -f "$tmp_proxy_backup" "$ROOT/build.ini"; trap - RETURN' RETURN
 
   printf 'collection: "%s"\n' "$collection_path_for_proxy" > "$collection_proxy_path"
 
@@ -129,8 +126,8 @@ build_example_if_needed() {
 
   ensure_dir "$example_output_dir"
 
-  # Create INI file with example information
-  tmp_ini="$(mktemp)"
+  # Create INI file with example information in project root
+  local ini_file="$ROOT/build.ini"
   {
     echo "[example]"
     echo "author = ${author:-}"
@@ -151,11 +148,11 @@ build_example_if_needed() {
     if [[ -n "$author_url" && "$author_url" != "null" && "$author_url" != "" ]]; then
       echo "author_url = ${author_url}"
     fi
-  } > "$tmp_ini"
+  } > "$ini_file"
 
   # Build using deployer
   local deployer_url="https://raw.githubusercontent.com/Insality/defold-deployer/refs/heads/update/deployer.sh"
-  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings "$tmp_ini") >&2; then
+  if (cd "$ROOT" && curl -s "${deployer_url}" | bash -s hbr --settings "$ini_file") >&2; then
     # Find the most recently created index.html
     local found_html=""
     found_html="$(find "$ROOT/dist/bundle" -name "index.html" -type f -path "*/_html/*" 2>/dev/null | head -1)"
