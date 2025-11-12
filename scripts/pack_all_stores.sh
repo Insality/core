@@ -137,7 +137,7 @@ build_example_if_needed() {
     echo "id = ${id:-}"
     echo "version = ${version:-}"
     if [[ -n "$example_code_url" && "$example_code_url" != "null" && "$example_code_url" != "" ]]; then
-      echo "example_code = ${example_code_url}"
+      echo "example_code_url = ${example_code_url}"
     fi
     if [[ -n "$title" && "$title" != "null" && "$title" != "" ]]; then
       echo "title = ${title}"
@@ -146,7 +146,7 @@ build_example_if_needed() {
       echo "description = ${description}"
     fi
     if [[ -n "$api_url" && "$api_url" != "null" && "$api_url" != "" ]]; then
-      echo "api = ${api_url}"
+      echo "api_url = ${api_url}"
     fi
     if [[ -n "$author_url" && "$author_url" != "null" && "$author_url" != "" ]]; then
       echo "author_url = ${author_url}"

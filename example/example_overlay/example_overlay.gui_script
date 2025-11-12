@@ -26,38 +26,6 @@ local function load_examples(self, url, on_load)
 end
 
 
-local function is_current_url(url)
-	if not html5 then
-		return false
-	end
-
-	--local example_name = html5.run("new URLSearchParams(window.location.search).get('example')")
-	local current_url = html5.run("window.location.href")
-	if not current_url or not url then
-		return false
-	end
-
-	-- Keep url address without query parameters and hash
-	local current_url_without_query = current_url:match("^https?://[^?#]+")
-	local target_url_without_query = url:match("^https?://[^?#]+")
-
-	-- Handle nil cases
-	if not current_url_without_query or not target_url_without_query then
-		return false
-	end
-
-	-- Normalize trailing slashes for comparison
-	current_url_without_query = current_url_without_query:gsub("/+$", "")
-	target_url_without_query = target_url_without_query:gsub("/+$", "")
-
-	-- Normalize case: domains are case-insensitive, so convert to lowercase for comparison
-	current_url_without_query = string.lower(current_url_without_query)
-	target_url_without_query = string.lower(target_url_without_query)
-
-	return current_url_without_query == target_url_without_query
-end
-
-
 ---@param self script.example_overlay
 ---@param items table[]
 local function render_items(self, items)
@@ -65,12 +33,13 @@ local function render_items(self, items)
 		local item = items[index]
 		local target_url = item.example_url
 		self.properties_panel:add_button_small(function(button)
-			local is_same_url = is_current_url(target_url)
+			local current_title = sys.get_config_string("example.title", "")
+			local is_same_title = current_title == item.title
 
 			button:set_text_property(item.title)
 			gui.set_font(button.text_name.node, "druid_text_regular")
 
-			if is_same_url then
+			if is_same_title then
 				button:set_input_enabled(false)
 				gui.set_alpha(button.button.node, 0.5)
 				gui.set_font(button.text_name.node, "druid_text_bold")
@@ -140,12 +109,12 @@ function init(self)
 		create_pages(self, data.items)
 	end)
 
-	self.example_code_url = sys.get_config_string("example.example_url")
+	self.example_code_url = sys.get_config_string("example.example_code_url")
 	if not self.example_code_url or self.example_code_url == "" then
 		self.example_code_url = nil
 	end
 
-	--gui.set_enabled(self.button_source.node, self.example_code_url ~= nil)
+	gui.set_enabled(self.button_source.node, self.example_code_url ~= nil)
 end
 
 ---@param self script.example_overlay
