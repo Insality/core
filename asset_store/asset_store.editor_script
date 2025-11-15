@@ -2,18 +2,15 @@ local asset_store = require("asset_store.asset_store")
 
 local M = {}
 
-local ASSET_STORE_INSTALL_FOLDER_DRUID = "/widget"
-local ASSET_STORE_INSTALL_FOLDER_EDITOR_SCRIPTS = "/editor_scripts"
-
 ---Define preferences schema
 function M.get_prefs_schema()
 	return {
 		["asset_store.install_folder_druid"] = editor.prefs.schema.string({
-			default = ASSET_STORE_INSTALL_FOLDER_DRUID,
+			default = "/widget",
 			scope = editor.prefs.SCOPE.PROJECT
 		}),
 		["asset_store.install_folder_editor_scripts"] = editor.prefs.schema.string({
-			default = ASSET_STORE_INSTALL_FOLDER_EDITOR_SCRIPTS,
+			default = "/editor_scripts",
 			scope = editor.prefs.SCOPE.PROJECT
 		})
 	}
@@ -22,21 +19,7 @@ end
 
 ---Define the editor commands
 function M.get_commands()
-	return {
-		{
-			label = "[Druid] Asset Store",
-			locations = { "Edit" },
-			run = function()
-				return asset_store.open({
-					store_url = "https://insality.github.io/core/druid_widget_store.json",
-					info_url = "https://github.com/Insality/core/blob/main/druid_widget_store.md",
-					title = "Druid Asset Store",
-					install_prefs_key = "asset_store.install_folder_druid",
-					default_install_folder = ASSET_STORE_INSTALL_FOLDER_DRUID,
-				})
-			end
-		},
-
+	local asset_store_commands = {
 		{
 			label = "[Assets] Editor Scripts",
 			locations = { "Edit" },
@@ -46,11 +29,28 @@ function M.get_commands()
 					info_url = "https://github.com/Insality/core/blob/main/assets_editor_scripts_store.md",
 					title = "Editor Scripts Asset Store",
 					install_prefs_key = "asset_store.install_folder_editor_scripts",
-					default_install_folder = ASSET_STORE_INSTALL_FOLDER_EDITOR_SCRIPTS,
 				})
 			end
-		},
+		}
 	}
+
+	local is_druid_installed = pcall(editor.can_get, "/druid", "path")
+	if is_druid_installed then
+		table.insert(asset_store_commands, {
+			label = "[Druid] Asset Store",
+			locations = { "Edit" },
+			run = function()
+				return asset_store.open({
+					store_url = "https://insality.github.io/core/druid_widget_store.json",
+					info_url = "https://github.com/Insality/core/blob/main/druid_widget_store.md",
+					title = "Druid Asset Store",
+					install_prefs_key = "asset_store.install_folder_druid",
+				})
+			end
+		})
+	end
+
+	return asset_store_commands
 end
 
 

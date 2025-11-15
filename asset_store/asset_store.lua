@@ -12,8 +12,6 @@ local widget_list_ui = require("asset_store.asset_store.ui.widget_list")
 local M = {}
 
 local INFO_RESULT = "asset_store_open_info"
-local DEFAULT_INSTALL_PREF_KEY = "druid.asset_install_folder"
-local DEFAULT_INSTALL_FOLDER = "/widget"
 local DEFAULT_TITLE = "Asset Store"
 local DEFAULT_INFO_BUTTON = "Info"
 local DEFAULT_CLOSE_BUTTON = "Close"
@@ -41,16 +39,9 @@ local function normalize_config(input)
 		empty_search_message = input.empty_search_message or DEFAULT_EMPTY_SEARCH_MESSAGE,
 		empty_filter_message = input.empty_filter_message or DEFAULT_EMPTY_FILTER_MESSAGE,
 		install_prefs_key = input.install_prefs_key,
-		default_install_folder = input.default_install_folder or DEFAULT_INSTALL_FOLDER,
 		labels = input.labels or {},
 		info_action = input.info_action,
 	}
-
-	if config.install_prefs_key == nil then
-		config.install_prefs_key = DEFAULT_INSTALL_PREF_KEY
-	elseif config.install_prefs_key == false then
-		config.install_prefs_key = nil
-	end
 
 	config.labels.search = config.labels.search or {}
 	for key, value in pairs(DEFAULT_SEARCH_LABELS) do
@@ -61,17 +52,6 @@ local function normalize_config(input)
 
 	return config
 end
-
-
-
-local function get_initial_install_folder(config)
-	if not config.install_prefs_key then
-		return config.default_install_folder
-	end
-
-	return editor.prefs.get(config.install_prefs_key) or config.default_install_folder
-end
-
 
 
 local function persist_install_folder(config, folder)
@@ -118,7 +98,7 @@ function M.open(config_input)
 	print("Successfully loaded", #store_data.items, "items")
 
 	local initial_items = store_data.items
-	local initial_install_folder = get_initial_install_folder(config)
+	local initial_install_folder = editor.prefs.get(config.install_prefs_key)
 	local filter_overrides = config.labels.filters and { labels = config.labels.filters } or nil
 
 	local dialog_component = editor.ui.component(function(props)
