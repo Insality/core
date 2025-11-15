@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /example/loader.collectionc
+main_collection = /widget/Insality/log_panel/example/example_log_panel.collectionc
 
 [script]
 shared_state = 1
@@ -41,4 +41,7 @@ app_manifest = /scripts/core.appmanifest
 clear_color_red = 0.13
 clear_color_green = 0.14
 clear_color_blue = 0.16
+
+[library]
+include_dirs = asset_store
 
