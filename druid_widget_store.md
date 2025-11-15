@@ -6,7 +6,7 @@ If you've made improvements to an existing widget, feel free to send updates via
 
 ## How to Open
 
-`Edit` -> `[Druid] Widget Store` in the menu. Make sure the Druid library is installed and fetched.
+`Project` -> `[Druid] Widget Store` in the menu. Make sure the Druid library is installed and fetched.
 
 ## Adding Your Widget
 
