@@ -1,4 +1,5 @@
 local installer = require("asset_store.asset_store.installer")
+local dependency_installer = require("asset_store.asset_store.dependency_installer")
 local internal = require("asset_store.asset_store.asset_store_internal")
 local dialog_ui = require("asset_store.asset_store.ui.dialog")
 local filters_ui = require("asset_store.asset_store.ui.filters")
@@ -10,6 +11,7 @@ local widget_list_ui = require("asset_store.asset_store.ui.widget_list")
 ---@field title string The title of the asset store displayed in the dialog window
 ---@field store_url string The URL of the asset store JSON file containing items list
 ---@field install_prefs_key string The preferences key used to store and retrieve the installation folder path
+---@field asset_type string? The type of assets in this store: "folder" (default) or "dependency"
 ---@field info_url string? The URL of the info page, if nil then info button will be hidden
 ---@field info_button_label string? The label text for the info button (default: "Info")
 ---@field close_button_label string? The label text for the close button (default: "Close")
@@ -62,6 +64,7 @@ local function normalize_config(input)
 	local config = {
 		store_url = input.store_url,
 		install_prefs_key = input.install_prefs_key,
+		asset_type = input.asset_type or "folder", -- Default to "folder" if not specified
 		info_url = input.info_url,
 		title = input.title or DEFAULT_TITLE,
 		info_button_label = input.info_button_label or DEFAULT_INFO_BUTTON,
@@ -83,23 +86,35 @@ local function normalize_config(input)
 end
 
 
----Handle widget installation
----@param item table - Widget item to install
----@param install_folder string - Installation folder
----@param all_items table - List of all widgets for dependency resolution
+---Handle asset installation (widget or dependency)
+---@param item table - Asset item to install
+---@param install_folder string - Installation folder (for folder type assets)
+---@param all_items table - List of all items for dependency resolution
+---@param asset_type string - Type of asset: "folder" or "dependency"
 ---@param on_success function - Success callback
 ---@param on_error function - Error callback
-local function handle_install(item, install_folder, all_items, on_success, on_error)
-	print("Installing widget:", item.id)
-
-	local success, message = installer.install_widget(item, install_folder, all_items)
-
-	if success then
-		print("Installation successful:", message)
-		on_success(message)
+local function handle_install(item, install_folder, all_items, asset_type, on_success, on_error)
+	if asset_type == "dependency" then
+		print("Installing dependency:", item.id)
+		local success, message = dependency_installer.install_dependency(item, all_items)
+		if success then
+			print("Installation successful:", message)
+			on_success(message)
+		else
+			print("Installation failed:", message)
+			on_error(message)
+		end
 	else
-		print("Installation failed:", message)
-		on_error(message)
+		-- Default to folder type
+		print("Installing widget:", item.id)
+		local success, message = installer.install_widget(item, install_folder, all_items)
+		if success then
+			print("Installation successful:", message)
+			on_success(message)
+		else
+			print("Installation failed:", message)
+			on_error(message)
+		end
 	end
 end
 
@@ -147,7 +162,7 @@ function M.open(config_input)
 		)
 
 		local function on_install(item)
-			handle_install(item, install_folder, all_items,
+			handle_install(item, install_folder, all_items, config.asset_type,
 				function(message)
 					set_install_status("Success: " .. message)
 				end,
@@ -202,7 +217,11 @@ function M.open(config_input)
 				on_install = on_install,
 				open_url = internal.open_url,
 				is_installed = function(item)
-					return installer.is_widget_installed(item, install_folder)
+					if config.asset_type == "dependency" then
+						return dependency_installer.is_dependency_installed(item)
+					else
+						return installer.is_widget_installed(item, install_folder)
+					end
 				end,
 				labels = config.labels.widget_card,
 			}))

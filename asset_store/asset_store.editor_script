@@ -5,6 +5,10 @@ local M = {}
 
 function M.get_prefs_schema()
 	return {
+		["asset_store.install_folder_dependencies"] = editor.prefs.schema.string({
+			default = "/dependencies",
+			scope = editor.prefs.SCOPE.PROJECT
+		}),
 		["asset_store.install_folder_druid"] = editor.prefs.schema.string({
 			default = "/widget",
 			scope = editor.prefs.SCOPE.PROJECT
@@ -20,6 +24,19 @@ end
 function M.get_commands()
 	local asset_store_commands = {
 		{
+			label = "[Asset Store] Dependencies",
+			locations = { "Project" },
+			run = function()
+				return asset_store.open({
+					store_url = "https://insality.github.io/core/dependencies_store.json",
+					info_url = "https://github.com/Insality/core/blob/main/dependencies_store.md",
+					title = "Dependencies Asset Store",
+					install_prefs_key = "asset_store.install_folder_dependencies",
+					asset_type = "dependency",
+				})
+			end
+		},
+		{
 			label = "[Asset Store] Editor Scripts",
 			locations = { "Project" },
 			run = function()
@@ -28,6 +45,7 @@ function M.get_commands()
 					info_url = "https://github.com/Insality/core/blob/main/assets_editor_scripts_store.md",
 					title = "Editor Scripts Asset Store",
 					install_prefs_key = "asset_store.install_folder_editor_scripts",
+					asset_type = "folder",
 				})
 			end
 		}
@@ -47,6 +65,7 @@ function M.get_commands()
 					info_url = "https://github.com/Insality/core/blob/main/druid_widget_store.md",
 					title = "Druid Asset Store",
 					install_prefs_key = "asset_store.install_folder_druid",
+					asset_type = "folder",
 				})
 			end
 		})

@@ -416,6 +416,141 @@ copy_or_stub_defold_deps() {
   echo "📦 Store: $store_name"
 }
 
+pack_dependency_store() {
+  local store_name="$1" store_index="$2" content_folder="$3"
+
+  local src_dir="$ASSETS_ROOT/$content_folder"
+  local out_index="$DIST_DIR/$store_index"
+
+  echo "📦 Store: $store_name"
+
+  local tmp_index
+  tmp_index="$(mktemp)"
+  jq -n '{items:[]}' > "$tmp_index"
+
+  if [[ ! -d "$src_dir" ]]; then
+    echo "⚠️  Directory '$src_dir' does not exist, writing empty index"
+    cp "$tmp_index" "$out_index"
+    return
+  fi
+
+  shopt -s nullglob
+  local all_manifests=()
+  for manifest in "$src_dir"/*/*.json "$src_dir"/*/*/*.json; do
+    all_manifests+=("$manifest")
+  done
+
+  for manifest in "${all_manifests[@]}"; do
+    local asset_dir; asset_dir="$(dirname "$manifest")"
+    local asset_folder; asset_folder="$(basename "$asset_dir")"
+    local name_no_ext; name_no_ext="$(basename "$manifest" .json)"
+
+    if [[ "$asset_folder" != "$name_no_ext" ]]; then
+      echo "  ⚠️  SKIP: $asset_folder != $name_no_ext"
+      continue
+    fi
+
+    # Read all fields from JSON manifest
+    local id version title author description api author_url image_rel depends tags content unlisted
+    id="$(jq -r '.id // "'$asset_folder'"' "$manifest")"
+    version="$(jq -r '.version' "$manifest")"
+    title="$(jq -r '.title // "'$id'"' "$manifest")"
+    author="$(jq -r '.author // empty' "$manifest")"
+    description="$(jq -r '.description // empty' "$manifest")"
+    api="$(jq -r '.api // empty' "$manifest")"
+    author_url="$(jq -r '.author_url // empty' "$manifest")"
+    image_rel="$(jq -r '.image // empty' "$manifest")"
+    depends="$(jq -c '.depends // []' "$manifest")"
+    tags="$(jq -c '.tags // []' "$manifest")"
+    content="$(jq -c '.content // []' "$manifest")"
+    unlisted="$(jq -c '.unlisted // false' "$manifest")"
+
+    if [[ -z "$version" || "$version" == "null" ]]; then
+      echo "  ❌ ERROR: $author:$id@$version has no version" >&2
+      exit 1
+    fi
+
+    if [[ -z "$author" || "$author" == "null" ]]; then
+      echo "  ❌ ERROR: $author:$id@$version has no author" >&2
+      exit 1
+    fi
+
+    if [[ -z "$content" || "$content" == "null" || "$content" == "[]" ]]; then
+      echo "  ❌ ERROR: $author:$id@$version has no content array" >&2
+      exit 1
+    fi
+
+    # Copy manifest JSON to dist (with author to avoid conflicts)
+    local manifest_dist_dir="$DIST_DIR/manifests/$content_folder/$author"
+    ensure_dir "$manifest_dist_dir"
+    cp -f "$manifest" "$manifest_dist_dir/${id}.json"
+    local manifest_url="${BASE_URL:+$BASE_URL/}manifests/$content_folder/$author/${id}.json"
+
+    # Copy image if exists (with author to avoid conflicts)
+    local image_url=""
+    if [[ -n "$image_rel" && -f "$asset_dir/$image_rel" ]]; then
+      local image_dir="$DIST_DIR/images/$author/$id"
+      ensure_dir "$image_dir"
+      cp -f "$asset_dir/$image_rel" "$image_dir/"
+      local img_name; img_name="$(basename "$image_rel")"
+      image_url="${BASE_URL:+$BASE_URL/}images/$author/$id/$img_name"
+    fi
+
+    # Generate GitHub URL for API documentation
+    local api_url=""
+    if [[ -n "$api" ]]; then
+      if [[ "$api" =~ ^https?:// ]]; then
+        api_url="$api"
+      elif [[ "$api" =~ ^/ ]]; then
+        # Absolute path from repository root
+        local api_file_path="$ASSETS_ROOT$api"
+        if [[ -f "$api_file_path" ]]; then
+          local relative_path="${api#/}"  # Remove leading slash
+          api_url="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/blob/$GITHUB_BRANCH/$relative_path"
+        fi
+      else
+        # Relative path from asset directory (may start with ./)
+        local api_normalized="$api"
+        [[ "$api_normalized" =~ ^\./ ]] && api_normalized="${api_normalized#./}"  # Remove leading ./
+        if [[ -f "$asset_dir/$api_normalized" ]]; then
+          local relative_path="${asset_dir#$ASSETS_ROOT/}/$api_normalized"
+          api_url="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/blob/$GITHUB_BRANCH/$relative_path"
+        fi
+      fi
+    fi
+
+    # Build item JSON with all fields (including content array)
+    local item
+    item="$(jq -n \
+      --arg id "$id" --arg version "$version" --arg title "$title" \
+      --arg author "$author" --arg description "$description" \
+      --arg api "$api_url" --arg author_url "$author_url" \
+      --arg image "$image_url" --arg manifest_url "$manifest_url" \
+      --argjson depends "$depends" --argjson tags "$tags" --argjson content "$content" --argjson unlisted "$unlisted" \
+      '{ id:$id, version:$version, title:$title,
+         author:(if $author == "" then null else $author end),
+         description:(if $description == "" then null else $description end),
+         api:(if $api == "" then null else $api end),
+         author_url:(if $author_url == "" then null else $author_url end),
+         image:(if $image == "" then null else $image end),
+         manifest_url:$manifest_url,
+         depends:$depends, tags:$tags, content:$content, unlisted:$unlisted }')"
+
+    # Add item to items array
+    jq --argjson item "$item" '.items += [$item]' "$tmp_index" > "${tmp_index}.tmp" && mv "${tmp_index}.tmp" "$tmp_index"
+
+    # Compact output: author:id@version
+    echo "  ✅ $author:$id@$version"
+    echo "     manifest: $manifest_url"
+    [[ -n "$image_url" ]] && echo "     image: $image_url"
+    [[ -n "$api_url" ]] && echo "     api: $api_url"
+  done
+
+  cp "$tmp_index" "$out_index"
+  local item_count=$(jq -r ".items | length" "$out_index")
+  echo "  📊 Total: $item_count items"
+}
+
 # ---------- main ----------
 echo "╔════════════════════════════════════════════════════════╗"
 echo "║         Defold Asset Store Builder                    ║"
@@ -446,6 +581,13 @@ for s in "${store_objs[@]}"; do
         exit 1
       fi
       pack_folder_store "$name" "$index" "$content"
+      ;;
+    dependency|dependencies)
+      if [[ -z "$content" ]]; then
+        echo "❌ ERROR: Store '$name' missing 'content'" >&2
+        exit 1
+      fi
+      pack_dependency_store "$name" "$index" "$content"
       ;;
     defold-dependencies)
       copy_or_stub_defold_deps "$name" "$index"

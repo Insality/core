@@ -1,0 +1,14 @@
+{
+	"author": "Insality",
+	"id": "druid",
+	"version": "1.1.6",
+	"depends": [ "Insality:defold-event" ],
+	"title": "Druid",
+	"description": "UI Framework for Defold",
+	"author_url": "https://github.com/Insality",
+	"tags": ["UI", "GUI", "framework"],
+	"content": [
+		"https://github.com/Insality/druid/archive/refs/tags/1.1.6.zip"
+	]
+}
+

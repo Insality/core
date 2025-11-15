@@ -1,7 +1,7 @@
 {
 	"stores": [
 		{
-			"name": "[Druid] Widgets",
+			"name": "[Assets] Druid Widgets",
 			"type": "folder",
 			"index": "druid_widget_store.json",
 			"content": "widget"
@@ -11,6 +11,12 @@
 			"type": "folder",
 			"index": "assets_editor_scripts_store.json",
 			"content": "editor_scripts"
+		},
+		{
+			"name": "[Assets] Dependencies",
+			"type": "dependencies",
+			"index": "dependencies_store.json",
+			"content": "dependencies"
 		}
 	]
 }
