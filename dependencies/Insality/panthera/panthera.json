@@ -1,0 +1,16 @@
+{
+	"author": "Insality",
+	"id": "panthera",
+	"version": "runtime.5",
+	"depends": [ "Insality:defold-tweener" ],
+	"title": "Panthera Runtime",
+	"description": "Panthera Animation Runtime for Defold Game Engine",
+	"author_url": "https://github.com/Insality",
+	"tags": ["animation", "runtime", "editor"],
+	"content": [
+		"https://github.com/Insality/panthera/archive/refs/tags/runtime.3.zip",
+		"https://github.com/Insality/panthera/archive/refs/tags/runtime.4.zip",
+		"https://github.com/Insality/panthera/archive/refs/tags/runtime.5.zip"
+	]
+}
+

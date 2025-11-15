@@ -1,5 +1,6 @@
 local DEFAULT_LABELS = {
 	install_button = "Install",
+	update_button = "Update",
 	api_button = "API",
 	example_button = "Example",
 	author_caption = "Author",
@@ -49,30 +50,39 @@ function M.create(item, context)
 	local labels = build_labels(context and context.labels)
 	local open_url = context and context.open_url or function(_) end
 	local on_install = context and context.on_install or function(...) end
+	local on_update = context and context.on_update or function(...) end
 	local is_installed = context and context.is_installed or false
+	local can_update = context and context.can_update or false
 
-	local size_text = format_size(item.size)
 	local version_text = item.version and ("v" .. item.version) or labels.unknown_version
 	local tags_text = item.tags and #item.tags > 0 and labels.tags_prefix .. table.concat(item.tags, ", ") or ""
 	local deps_text = item.depends and #item.depends > 0 and labels.depends_prefix .. table.concat(item.depends, ", ") or ""
 
+	-- Build header children (title, version, size if available)
+	local header_children = {
+		editor.ui.label({
+			text = item.title or item.id,
+			color = editor.ui.COLOR.OVERRIDE
+		}),
+		editor.ui.label({
+			text = version_text,
+			color = editor.ui.COLOR.WARNING
+		}),
+	}
+
+	-- Only add size if it exists
+	if item.size and item.size > 0 then
+		local size_text = format_size(item.size)
+		table.insert(header_children, editor.ui.label({
+			text = labels.size_separator .. size_text,
+			color = editor.ui.COLOR.HINT
+		}))
+	end
+
 	local widget_details_children = {
 		editor.ui.horizontal({
 			spacing = editor.ui.SPACING.SMALL,
-			children = {
-				editor.ui.label({
-					text = item.title or item.id,
-					color = editor.ui.COLOR.OVERRIDE
-				}),
-				editor.ui.label({
-					text = version_text,
-					color = editor.ui.COLOR.WARNING
-				}),
-				editor.ui.label({
-					text = labels.size_separator .. size_text,
-					color = editor.ui.COLOR.HINT
-				}),
-			}
+			children = header_children
 		}),
 		editor.ui.paragraph({
 			text = item.description or "No description available",
@@ -101,13 +111,22 @@ function M.create(item, context)
 		}))
 	end
 
-	local button_children = {
-		editor.ui.button({
+	local button_children = {}
+	
+	-- Show Update button if can update, otherwise show Install button
+	if can_update then
+		table.insert(button_children, editor.ui.button({
+			text = labels.update_button,
+			on_pressed = on_update,
+			enabled = true
+		}))
+	else
+		table.insert(button_children, editor.ui.button({
 			text = labels.install_button,
 			on_pressed = on_install,
 			enabled = not is_installed
-		})
-	}
+		}))
+	end
 
 	if item.api then
 		table.insert(button_children, editor.ui.button({

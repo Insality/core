@@ -11,6 +11,7 @@ end
 local function build_context(overrides)
 	return {
 		on_install = overrides.on_install or noop,
+		on_update = overrides.on_update or noop,
 		open_url = overrides.open_url or noop,
 		labels = overrides.labels,
 	}
@@ -22,6 +23,9 @@ function M.create(items, overrides)
 	local is_installed = overrides and overrides.is_installed or function(_)
 		return false
 	end
+	local can_update = overrides and overrides.can_update or function(_)
+		return false
+	end
 
 	local widget_items = {}
 	for _, item in ipairs(items) do
@@ -29,9 +33,13 @@ function M.create(items, overrides)
 			on_install = function()
 				card_context.on_install(item)
 			end,
+			on_update = function()
+				card_context.on_update(item)
+			end,
 			open_url = card_context.open_url,
 			labels = card_context.labels,
 			is_installed = is_installed(item),
+			can_update = can_update(item),
 		}
 
 		table.insert(widget_items, widget_card.create(item, context))

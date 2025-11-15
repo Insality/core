@@ -1,0 +1,14 @@
+{
+	"author": "Insality",
+	"id": "defold-token",
+	"version": "1",
+	"depends": [],
+	"title": "Defold Token",
+	"description": "Token system for Defold",
+	"author_url": "https://github.com/Insality",
+	"tags": ["token", "authentication", "security"],
+	"content": [
+		"https://github.com/Insality/defold-token/archive/refs/tags/1.zip"
+	]
+}
+

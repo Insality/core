@@ -119,6 +119,30 @@ local function handle_install(item, install_folder, all_items, asset_type, on_su
 end
 
 
+---Handle asset update (dependency only)
+---@param item table - Dependency item to update
+---@param all_items table - List of all items for dependency resolution
+---@param on_success function - Success callback
+---@param on_error function - Error callback
+local function handle_update(item, all_items, on_success, on_error)
+	local can_update, new_url = dependency_installer.can_update_dependency(item)
+	if not can_update or not new_url then
+		on_error("Cannot update dependency: " .. item.id)
+		return
+	end
+
+	print("Updating dependency:", item.id)
+	local success, message = dependency_installer.update_dependency(item, new_url)
+	if success then
+		print("Update successful:", message)
+		on_success(message)
+	else
+		print("Update failed:", message)
+		on_error(message)
+	end
+end
+
+
 function M.open(config_input)
 	local config = normalize_config(config_input)
 
@@ -172,6 +196,19 @@ function M.open(config_input)
 			)
 		end
 
+		local function on_update(item)
+			if config.asset_type == "dependency" then
+				handle_update(item, all_items,
+					function(message)
+						set_install_status("Success: " .. message)
+					end,
+					function(message)
+						set_install_status("Error: " .. message)
+					end
+				)
+			end
+		end
+
 		local content_children = {}
 
 		table.insert(content_children, settings_ui.create({
@@ -215,6 +252,7 @@ function M.open(config_input)
 		else
 			table.insert(content_children, widget_list_ui.create(filtered_items, {
 				on_install = on_install,
+				on_update = config.asset_type == "dependency" and on_update or nil,
 				open_url = internal.open_url,
 				is_installed = function(item)
 					if config.asset_type == "dependency" then
@@ -222,6 +260,13 @@ function M.open(config_input)
 					else
 						return installer.is_widget_installed(item, install_folder)
 					end
+				end,
+				can_update = function(item)
+					if config.asset_type == "dependency" then
+						local can_update, _ = dependency_installer.can_update_dependency(item)
+						return can_update
+					end
+					return false
 				end,
 				labels = config.labels.widget_card,
 			}))

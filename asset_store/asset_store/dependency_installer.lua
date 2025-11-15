@@ -4,157 +4,93 @@
 local M = {}
 
 
----Read and parse game.project file
----@return table|nil - Parsed project data as table with sections, or nil on error
-local function read_game_project()
-	local project_path = "game.project"
-	local file = io.open(project_path, "r")
-	if not file then
-		print("Failed to open game.project file")
-		return nil
+---Get dependencies from game.project using editor API
+---@return table|nil - Array of dependency URLs or nil
+local function get_dependencies()
+	local dependencies = editor.get("/game.project", "project.dependencies")
+	if dependencies and type(dependencies) == "table" then
+		return dependencies
 	end
-
-	local project_data = {}
-	local current_section = nil
-
-	for line in file:lines() do
-		line = line:match("^%s*(.-)%s*$") -- Trim whitespace
-		
-		-- Skip empty lines and comments
-		if line ~= "" and not line:match("^#") then
-			-- Check for section header [section]
-			local section = line:match("^%[([^%]]+)%]$")
-			if section then
-				current_section = section
-				if not project_data[section] then
-					project_data[section] = {}
-				end
-			else
-				-- Parse key = value or key#index = value
-				if current_section then
-					local key, value = line:match("^([^=]+)=(.+)$")
-					if key and value then
-						key = key:match("^%s*(.-)%s*$") -- Trim key
-						value = value:match("^%s*(.-)%s*$") -- Trim value
-						
-						-- Handle indexed keys like dependencies#0
-						local base_key, index = key:match("^([^#]+)#(%d+)$")
-						if base_key and index then
-							local idx = tonumber(index)
-							if not project_data[current_section][base_key] then
-								project_data[current_section][base_key] = {}
-							end
-							project_data[current_section][base_key][idx] = value
-						else
-							project_data[current_section][key] = value
-						end
-					end
-				end
-			end
-		end
-	end
-
-	file:close()
-	return project_data
+	return {}
 end
 
 
----Write game.project file from parsed data
----@param project_data table - Parsed project data with sections
+---Set dependencies in game.project using editor API
+---@param dependencies table - Array of dependency URLs
 ---@return boolean - Success status
-local function write_game_project(project_data)
-	if not project_data then
+local function set_dependencies(dependencies)
+	if not dependencies or type(dependencies) ~= "table" then
 		return false
 	end
 
-	local project_path = "game.project"
-	local file = io.open(project_path, "w")
-	if not file then
-		print("Failed to write game.project file")
-		return false
-	end
+	editor.transact({
+		editor.tx.set("/game.project", "project.dependencies", dependencies)
+	})
 
-	-- Sort sections to maintain order (project section should be early)
-	local section_order = { "bootstrap", "script", "display", "android", "html5", "project", "input", "model", "native_extension", "render", "library" }
-	local written_sections = {}
-
-	-- Write known sections in order
-	for _, section_name in ipairs(section_order) do
-		if project_data[section_name] then
-			file:write("[" .. section_name .. "]\n")
-			local section = project_data[section_name]
-			
-			-- Write regular keys first
-			local regular_keys = {}
-			local indexed_keys = {}
-			
-			for key, value in pairs(section) do
-				if type(value) == "table" then
-					indexed_keys[key] = value
-				else
-					table.insert(regular_keys, key)
-				end
-			end
-			
-			table.sort(regular_keys)
-			for _, key in ipairs(regular_keys) do
-				file:write(key .. " = " .. tostring(section[key]) .. "\n")
-			end
-			
-			-- Write indexed keys (like dependencies#0, dependencies#1, etc.)
-			for key, indices in pairs(indexed_keys) do
-				local sorted_indices = {}
-				for idx, _ in pairs(indices) do
-					table.insert(sorted_indices, idx)
-				end
-				table.sort(sorted_indices)
-				for _, idx in ipairs(sorted_indices) do
-					file:write(key .. "#" .. idx .. " = " .. tostring(indices[idx]) .. "\n")
-				end
-			end
-			
-			file:write("\n")
-			written_sections[section_name] = true
-		end
-	end
-
-	-- Write any remaining sections
-	for section_name, section in pairs(project_data) do
-		if not written_sections[section_name] then
-			file:write("[" .. section_name .. "]\n")
-			local regular_keys = {}
-			local indexed_keys = {}
-			
-			for key, value in pairs(section) do
-				if type(value) == "table" then
-					indexed_keys[key] = value
-				else
-					table.insert(regular_keys, key)
-				end
-			end
-			
-			table.sort(regular_keys)
-			for _, key in ipairs(regular_keys) do
-				file:write(key .. " = " .. tostring(section[key]) .. "\n")
-			end
-			
-			for key, indices in pairs(indexed_keys) do
-				local sorted_indices = {}
-				for idx, _ in pairs(indices) do
-					table.insert(sorted_indices, idx)
-				end
-				table.sort(sorted_indices)
-				for _, idx in ipairs(sorted_indices) do
-					file:write(key .. "#" .. idx .. " = " .. tostring(indices[idx]) .. "\n")
-				end
-			end
-			
-			file:write("\n")
-		end
-	end
-
-	file:close()
 	return true
+end
+
+
+---Extract repository identifier from URL (e.g., "Insality/druid" from GitHub URL)
+---@param url string - Dependency URL
+---@return string|nil - Repository identifier or nil
+local function extract_repo_id(url)
+	if not url or type(url) ~= "string" then
+		return nil
+	end
+
+	-- Match GitHub URLs: https://github.com/owner/repo/archive/...
+	local owner, repo = url:match("github%.com/([^/]+)/([^/]+)/")
+	if owner and repo then
+		return owner .. "/" .. repo
+	end
+
+	return nil
+end
+
+
+---Extract version number from URL (e.g., "12" from "tags/12.zip" or "1.1.6" from "tags/1.1.6.zip")
+---@param url string - Dependency URL
+---@return string|nil - Version string or nil
+local function extract_version_from_url(url)
+	if not url or type(url) ~= "string" then
+		return nil
+	end
+
+	-- Match patterns like: tags/12.zip, tags/1.1.6.zip, refs/tags/12.zip, etc.
+	local version = url:match("tags/([^/]+)%.zip")
+	if version then
+		return version
+	end
+
+	-- Try to match version in other patterns
+	version = url:match("refs/tags/([^/]+)%.zip")
+	if version then
+		return version
+	end
+
+	return nil
+end
+
+
+---Compare two version strings (simple numeric comparison)
+---@param v1 string - First version
+---@param v2 string - Second version
+---@return number - Negative if v1 < v2, positive if v1 > v2, 0 if equal
+local function compare_versions(v1, v2)
+	if not v1 or not v2 then
+		return 0
+	end
+
+	-- Try to parse as numbers first (for simple versions like "12", "13")
+	local n1, n2 = tonumber(v1), tonumber(v2)
+	if n1 and n2 then
+		return n1 - n2
+	end
+
+	-- For semantic versions like "1.1.6", do string comparison
+	-- This is a simple approach - for more complex cases might need proper semver parsing
+	return v1 < v2 and -1 or (v1 > v2 and 1 or 0)
 end
 
 
@@ -166,60 +102,145 @@ local function add_to_game_project(url)
 		return false
 	end
 
-	local project_data = read_game_project()
-	if not project_data then
-		return false
+	local dependencies = get_dependencies()
+	if not dependencies then
+		dependencies = {}
 	end
 
-	-- Ensure project section exists
-	if not project_data.project then
-		project_data.project = {}
-	end
+	-- Extract repository identifier from the URL we want to add
+	local url_repo_id = extract_repo_id(url)
 
-	-- Check if URL already exists
-	if project_data.project.dependencies then
-		for _, existing_url in pairs(project_data.project.dependencies) do
-			if existing_url == url then
-				print("Dependency already exists in game.project:", url)
-				return true
+	-- Check if repository already exists (by comparing repo IDs, not exact URLs)
+	if url_repo_id then
+		for _, existing_url in ipairs(dependencies) do
+			if type(existing_url) == "string" then
+				local existing_repo_id = extract_repo_id(existing_url)
+				if existing_repo_id == url_repo_id then
+					print("Dependency repository already exists in game.project:", url_repo_id, "(existing:", existing_url .. ", new:", url .. ")")
+					return true
+				end
 			end
 		end
 	end
 
-	-- Find next available index
-	local next_index = 0
-	if project_data.project.dependencies then
-		for idx, _ in pairs(project_data.project.dependencies) do
-			if idx >= next_index then
-				next_index = idx + 1
-			end
+	-- Also check for exact URL match (for backwards compatibility)
+	for _, existing_url in ipairs(dependencies) do
+		if existing_url == url then
+			print("Dependency URL already exists in game.project:", url)
+			return true
 		end
-	end
-
-	-- Initialize dependencies table if needed
-	if not project_data.project.dependencies then
-		project_data.project.dependencies = {}
 	end
 
 	-- Add the dependency
-	project_data.project.dependencies[next_index] = url
-	print("Adding dependency to game.project:", url, "at index", next_index)
+	table.insert(dependencies, url)
+	print("Adding dependency to game.project:", url)
 
-	return write_game_project(project_data)
+	return set_dependencies(dependencies)
+end
+
+
+---Find dependency by dependency string (format: "author:dependency_id" or "author@dependency_id" or "dependency_id")
+---@param dep_string string - Dependency string
+---@param all_items table - List of all available dependencies
+---@return table|nil - Found dependency item or nil
+local function find_dependency_by_string(dep_string, all_items)
+	if not dep_string or not all_items then
+		return nil
+	end
+
+	local author, dep_id
+
+	-- Try format: "author:dependency_id" (e.g., "Insality:defold-event")
+	author, dep_id = dep_string:match("^([^:]+):([^@]+)$")
+	if not author then
+		-- Try format: "author@dependency_id" (e.g., "insality@defold-event")
+		author, dep_id = dep_string:match("^([^@]+)@(.+)$")
+		if not author then
+			-- No author specified, search by dependency_id only
+			dep_id = dep_string
+		end
+	end
+
+	for _, item in ipairs(all_items) do
+		if item.id == dep_id then
+			-- If author was specified, check it matches (case-insensitive)
+			if not author or string.lower(item.author or "") == string.lower(author) then
+				return item
+			end
+		end
+	end
+
+	return nil
+end
+
+
+---Install dependency dependencies recursively
+---@param item table - Dependency item
+---@param all_items table - List of all available dependencies
+---@param installing_set table - Set of dependency IDs currently being installed (to prevent cycles)
+---@return boolean, string|nil - Success status and message
+local function install_dependency_dependencies(item, all_items, installing_set)
+	if not item.depends or #item.depends == 0 then
+		return true, nil
+	end
+
+	installing_set = installing_set or {}
+
+	for _, dep_string in ipairs(item.depends) do
+		local dep_item = find_dependency_by_string(dep_string, all_items)
+		if not dep_item then
+			print("Warning: Dependency not found:", dep_string)
+			-- Continue with other dependencies
+		else
+			-- Check if already installed
+			if M.is_dependency_installed(dep_item) then
+				print("Dependency already installed:", dep_item.id)
+			else
+				-- Check for circular dependencies
+				if installing_set[dep_item.id] then
+					print("Warning: Circular dependency detected:", dep_item.id)
+					-- Continue with other dependencies
+				else
+					print("Installing dependency:", dep_item.id)
+					local success, err = M.install_dependency(dep_item, all_items, installing_set)
+					if not success then
+						return false, "Failed to install dependency " .. dep_item.id .. ": " .. (err or "unknown error")
+					end
+				end
+			end
+		end
+	end
+
+	return true, nil
 end
 
 
 ---Install a dependency by adding URLs from content array to game.project
 ---@param item table - Dependency item with content array containing URLs
----@param all_items table|nil - Optional list of all items for dependency resolution (not used for dependencies)
+---@param all_items table|nil - Optional list of all items for dependency resolution
+---@param installing_set table|nil - Optional set of dependency IDs currently being installed (to prevent cycles)
 ---@return boolean, string - Success status and message
-function M.install_dependency(item, all_items)
+function M.install_dependency(item, all_items, installing_set)
 	if not item.content or type(item.content) ~= "table" or #item.content == 0 then
 		return false, "Invalid dependency data: missing content array"
 	end
 
 	if not item.id then
 		return false, "Invalid dependency data: missing id"
+	end
+
+	-- Install dependencies first if all_items is provided
+	if all_items then
+		installing_set = installing_set or {}
+		if installing_set[item.id] then
+			return false, "Circular dependency detected: " .. item.id
+		end
+		installing_set[item.id] = true
+		local dep_success, dep_err = install_dependency_dependencies(item, all_items, installing_set)
+		if not dep_success then
+			installing_set[item.id] = nil
+			return false, dep_err or "Failed to install dependencies"
+		end
 	end
 
 	print("Installing dependency:", item.id)
@@ -229,40 +250,170 @@ function M.install_dependency(item, all_items)
 		if type(url) == "string" and url ~= "" then
 			local success = add_to_game_project(url)
 			if not success then
+				if installing_set then
+					installing_set[item.id] = nil
+				end
 				return false, "Failed to add dependency URL to game.project: " .. url
 			end
 		end
+	end
+
+	if installing_set then
+		installing_set[item.id] = nil
 	end
 
 	return true, "Dependency installed successfully. Please run 'Project ▸ Fetch Libraries' to update dependencies."
 end
 
 
----Check if a dependency is already installed by checking if any URL from content exists in game.project
+---Get currently installed version URL for a dependency
 ---@param item table - Dependency item with content array
----@return boolean - True if dependency is installed
-function M.is_dependency_installed(item)
+---@return string|nil - Currently installed URL or nil
+function M.get_installed_version_url(item)
 	if not item.content or type(item.content) ~= "table" or #item.content == 0 then
-		return false
+		return nil
 	end
 
-	local project_data = read_game_project()
-	if not project_data or not project_data.project or not project_data.project.dependencies then
-		return false
+	local dependencies = get_dependencies()
+	if not dependencies or #dependencies == 0 then
+		return nil
 	end
 
-	-- Check if any URL from content array exists in game.project
+	-- Extract repository identifiers from content URLs
+	local content_repos = {}
 	for _, url in ipairs(item.content) do
 		if type(url) == "string" and url ~= "" then
-			for _, existing_url in pairs(project_data.project.dependencies) do
-				if existing_url == url then
-					return true
-				end
+			local repo_id = extract_repo_id(url)
+			if repo_id then
+				content_repos[repo_id] = true
 			end
 		end
 	end
 
-	return false
+	-- Find the installed URL for this repository
+	for _, existing_url in ipairs(dependencies) do
+		if type(existing_url) == "string" then
+			local existing_repo_id = extract_repo_id(existing_url)
+			if existing_repo_id and content_repos[existing_repo_id] then
+				return existing_url
+			end
+		end
+	end
+
+	return nil
+end
+
+
+---Get the latest version URL from content array
+---@param item table - Dependency item with content array
+---@return string|nil - Latest version URL or nil
+function M.get_latest_version_url(item)
+	if not item.content or type(item.content) ~= "table" or #item.content == 0 then
+		return nil
+	end
+
+	local latest_url = nil
+	local latest_version = nil
+
+	for _, url in ipairs(item.content) do
+		if type(url) == "string" and url ~= "" then
+			local version = extract_version_from_url(url)
+			if version then
+				if not latest_version or compare_versions(version, latest_version) > 0 then
+					latest_version = version
+					latest_url = url
+				end
+			elseif not latest_url then
+				-- If we can't extract version, use first URL as fallback
+				latest_url = url
+			end
+		end
+	end
+
+	return latest_url or (item.content[1] and item.content[1] or nil)
+end
+
+
+---Check if a dependency can be updated
+---@param item table - Dependency item with content array
+---@return boolean, string|nil - True if can be updated, and new version URL if available
+function M.can_update_dependency(item)
+	local installed_url = M.get_installed_version_url(item)
+	if not installed_url then
+		return false, nil
+	end
+
+	local latest_url = M.get_latest_version_url(item)
+	if not latest_url then
+		return false, nil
+	end
+
+	-- If URLs are the same, no update needed
+	if installed_url == latest_url then
+		return false, nil
+	end
+
+	local installed_version = extract_version_from_url(installed_url)
+	local latest_version = extract_version_from_url(latest_url)
+
+	-- If we can't extract versions, compare URLs directly
+	if not installed_version or not latest_version then
+		return installed_url ~= latest_url, latest_url
+	end
+
+	-- Check if latest version is newer
+	return compare_versions(latest_version, installed_version) > 0, latest_url
+end
+
+
+---Check if a dependency is already installed by checking if repository from content exists in game.project
+---@param item table - Dependency item with content array
+---@return boolean - True if dependency is installed
+function M.is_dependency_installed(item)
+	return M.get_installed_version_url(item) ~= nil
+end
+
+
+---Update a dependency by replacing old URL with new URL in game.project
+---@param item table - Dependency item with content array
+---@param new_url string - New URL to replace old one with
+---@return boolean, string - Success status and message
+function M.update_dependency(item, new_url)
+	if not new_url or new_url == "" then
+		return false, "Invalid URL for update"
+	end
+
+	local installed_url = M.get_installed_version_url(item)
+	if not installed_url then
+		return false, "Dependency is not installed"
+	end
+
+	local dependencies = get_dependencies()
+	if not dependencies then
+		return false, "Failed to read game.project dependencies"
+	end
+
+	-- Find and replace the old URL with new URL
+	local found = false
+	for idx, existing_url in ipairs(dependencies) do
+		if existing_url == installed_url then
+			dependencies[idx] = new_url
+			found = true
+			print("Updating dependency in game.project:", installed_url, "->", new_url, "at index", idx)
+			break
+		end
+	end
+
+	if not found then
+		return false, "Could not find installed dependency URL in game.project"
+	end
+
+	local success = set_dependencies(dependencies)
+	if success then
+		return true, "Dependency updated successfully. Please run 'Project ▸ Fetch Libraries' to update dependencies."
+	else
+		return false, "Failed to update game.project"
+	end
 end
 
 

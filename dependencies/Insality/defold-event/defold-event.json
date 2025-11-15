@@ -1,14 +1,16 @@
 {
 	"author": "Insality",
 	"id": "defold-event",
-	"version": "12",
+	"version": "14",
 	"depends": [],
 	"title": "Defold Event",
 	"description": "Event system for Defold game engine",
 	"author_url": "https://github.com/Insality",
 	"tags": ["event", "system", "messaging"],
 	"content": [
-		"https://github.com/Insality/defold-event/archive/refs/tags/12.zip"
+		"https://github.com/Insality/defold-event/archive/refs/tags/12.zip",
+		"https://github.com/Insality/defold-event/archive/refs/tags/13.zip",
+		"https://github.com/Insality/defold-event/archive/refs/tags/14.zip"
 	]
 }
 

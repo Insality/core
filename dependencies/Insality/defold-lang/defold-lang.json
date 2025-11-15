@@ -1,0 +1,14 @@
+{
+	"author": "Insality",
+	"id": "defold-lang",
+	"version": "1",
+	"depends": [],
+	"title": "Defold Lang",
+	"description": "Localization library for Defold",
+	"author_url": "https://github.com/Insality",
+	"tags": ["localization", "i18n", "language"],
+	"content": [
+		"https://github.com/Insality/defold-lang/archive/refs/tags/1.zip"
+	]
+}
+

@@ -1,0 +1,14 @@
+{
+	"author": "Insality",
+	"id": "defold-proto",
+	"version": "1",
+	"depends": [],
+	"title": "Defold Proto",
+	"description": "Protocol Buffers support for Defold",
+	"author_url": "https://github.com/Insality",
+	"tags": ["protobuf", "serialization", "network"],
+	"content": [
+		"https://github.com/Insality/defold-proto/archive/refs/tags/1.zip"
+	]
+}
+

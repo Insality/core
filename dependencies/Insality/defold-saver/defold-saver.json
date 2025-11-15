@@ -1,0 +1,16 @@
+{
+	"author": "Insality",
+	"id": "defold-saver",
+	"version": "5",
+	"depends": [],
+	"title": "Defold Saver",
+	"description": "Defold Save File Manager",
+	"author_url": "https://github.com/Insality",
+	"tags": ["save", "storage", "persistence"],
+	"content": [
+		"https://github.com/Insality/defold-saver/archive/refs/tags/v3.zip",
+		"https://github.com/Insality/defold-saver/archive/refs/tags/v4.zip",
+		"https://github.com/Insality/defold-saver/archive/refs/tags/v5.zip"
+	]
+}
+

@@ -1,0 +1,14 @@
+{
+	"author": "Insality",
+	"id": "defold-quest",
+	"version": "1",
+	"depends": [],
+	"title": "Defold Quest",
+	"description": "Quest system for Defold",
+	"author_url": "https://github.com/Insality",
+	"tags": ["quest", "gameplay", "system"],
+	"content": [
+		"https://github.com/Insality/defold-quest/archive/refs/tags/1.zip"
+	]
+}
+

@@ -1,0 +1,14 @@
+{
+	"author": "Insality",
+	"id": "defold-log",
+	"version": "1",
+	"depends": [],
+	"title": "Defold Log",
+	"description": "Logging library for Defold",
+	"author_url": "https://github.com/Insality",
+	"tags": ["logging", "debug", "utility"],
+	"content": [
+		"https://github.com/Insality/defold-log/archive/refs/tags/1.zip"
+	]
+}
+
