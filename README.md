@@ -9,14 +9,17 @@ The repository in **development stage** and not ready to use. But if you interes
 
 # Asset Store
 
-**Asset Store** - is an editor script for the [Defold](https://defold.com/) game engine. It provides a convenient way to browse, search, and install assets (editor scripts, Druid's widgets, and other resources) directly from the Defold editor interface.
+**Asset Store** - is an editor script for the [Defold](https://defold.com/) game engine. It provides a convenient way to browse, publish and install assets (editor scripts, Druid's widgets, and other resources) directly from the Defold editor interface.
+
+All assets will be copied to your project automatically after installation, so you can adjust or change them easily.
 
 ## Features
 
-- **Browse Assets**: View available assets with preview images, descriptions, and metadata.
-- **Search & Filter**: Search assets by title, author, description, or tags. Filter by installation status, author, or tags.
+- **Browse Assets**: View available assets inside Defold Editor.
+- **Search & Filter**: Search assets by title, author, description, or tags.
 - **One-Click Installation**: Install assets directly into your project with automatic dependency resolution.
-- **Multiple Stores**: Support for multiple asset stores (Editor Scripts, Druid Widgets, etc.).
+- **Multiple Stores**: Support for multiple asset stores.
+- **Community Driven**: You can contribute by easily adding your own assets to the store.
 
 ## Setup
 
