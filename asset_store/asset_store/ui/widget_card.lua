@@ -149,7 +149,7 @@ function M.create(item, context)
 		padding = editor.ui.PADDING.SMALL,
 		children = {
 			editor.ui.label({
-				text = "•••",
+				text = is_installed and "▸▸  " or "▹▹  ",
 				color = editor.ui.COLOR.HINT
 			}),
 			editor.ui.vertical({
