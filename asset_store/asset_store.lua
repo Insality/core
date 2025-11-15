@@ -1,6 +1,3 @@
---- Main asset store module for Druid widgets
---- Handles fetching widget data, displaying the store interface, and managing installations
-
 local installer = require("asset_store.asset_store.installer")
 local internal = require("asset_store.asset_store.asset_store_internal")
 local dialog_ui = require("asset_store.asset_store.ui.dialog")
@@ -8,6 +5,38 @@ local filters_ui = require("asset_store.asset_store.ui.filters")
 local search_ui = require("asset_store.asset_store.ui.search")
 local settings_ui = require("asset_store.asset_store.ui.settings")
 local widget_list_ui = require("asset_store.asset_store.ui.widget_list")
+
+---@class asset_store.config
+---@field title string The title of the asset store
+---@field store_url string The URL of the asset store
+---@field install_prefs_key string The key of the install folder in the preferences
+---@field info_url string? The URL of the info page, if nil then info button will be hidden
+---@field info_button_label string? The label of the info button
+---@field close_button_label string? The label of the close button
+---@field empty_search_message string? The message to show when no items are found by search
+---@field empty_filter_message string?
+---@field labels table
+---@field labels.search table
+---@field labels.filters table
+---@field labels.widget_card table
+
+---@class asset_store.item
+---@field id string
+---@field version string
+---@field title string
+---@field author string
+---@field description string
+---@field api string
+---@field author_url string
+---@field image string
+---@field manifest_url string
+---@field zip_url string
+---@field json_zip_url string
+---@field sha256 string
+---@field size number
+---@field depends string[]
+---@field tags string[]
+
 
 local M = {}
 
@@ -18,27 +47,25 @@ local DEFAULT_CLOSE_BUTTON = "Close"
 local DEFAULT_EMPTY_SEARCH_MESSAGE = "No widgets found matching '%s'."
 local DEFAULT_EMPTY_FILTER_MESSAGE = "No widgets found matching the current filters."
 local DEFAULT_SEARCH_LABELS = {
-	search_tooltip = "Search for widgets by title, author, or description"
+	search_tooltip = "Search by title, author, or description"
 }
 
 
 local function normalize_config(input)
-	if type(input) == "string" then
-		input = { store_url = input }
-	end
-
-	assert(type(input) == "table", "asset_store.open expects a string URL or config table")
+	assert(type(input) == "table", "asset_store.open expects a config table")
 	assert(input.store_url, "asset_store.open requires a store_url")
+	assert(input.install_prefs_key)
+
 
 	local config = {
 		store_url = input.store_url,
+		install_prefs_key = input.install_prefs_key,
 		info_url = input.info_url,
 		title = input.title or DEFAULT_TITLE,
 		info_button_label = input.info_button_label or DEFAULT_INFO_BUTTON,
 		close_button_label = input.close_button_label or DEFAULT_CLOSE_BUTTON,
 		empty_search_message = input.empty_search_message or DEFAULT_EMPTY_SEARCH_MESSAGE,
 		empty_filter_message = input.empty_filter_message or DEFAULT_EMPTY_FILTER_MESSAGE,
-		install_prefs_key = input.install_prefs_key,
 		labels = input.labels or {},
 		info_action = input.info_action,
 	}
@@ -52,16 +79,6 @@ local function normalize_config(input)
 
 	return config
 end
-
-
-local function persist_install_folder(config, folder)
-	if not config.install_prefs_key then
-		return
-	end
-
-	editor.prefs.set(config.install_prefs_key, folder)
-end
-
 
 
 ---Handle widget installation
@@ -144,7 +161,7 @@ function M.open(config_input)
 			install_folder = install_folder,
 			on_install_folder_changed = function(new_folder)
 				set_install_folder(new_folder)
-				persist_install_folder(config, new_folder)
+				editor.prefs.set(config.install_prefs_key, new_folder)
 			end,
 			labels = config.labels.settings
 		}))
@@ -198,7 +215,7 @@ function M.open(config_input)
 		end
 
 		local buttons = {}
-		if config.info_url or config.info_action then
+		if config.info_url then
 			table.insert(buttons, editor.ui.dialog_button({
 				text = config.info_button_label,
 				result = INFO_RESULT,
@@ -219,9 +236,7 @@ function M.open(config_input)
 	local result = editor.ui.show_dialog(dialog_component({}))
 
 	if result and result == INFO_RESULT then
-		if config.info_action then
-			config.info_action()
-		elseif config.info_url then
+		if config.info_url then
 			internal.open_url(config.info_url)
 		end
 	end

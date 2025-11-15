@@ -6,24 +6,6 @@ local path_replacer = require("asset_store.asset_store.path_replacer")
 
 local M = {}
 
----@class druid.core.item_info
----@field id string
----@field version string
----@field title string
----@field author string
----@field description string
----@field api string
----@field author_url string
----@field image string
----@field manifest_url string
----@field zip_url string
----@field json_zip_url string
----@field sha256 string
----@field size number
----@field depends string[]
----@field tags string[]
-
-
 ---Download a file from URL
 ---@param url string - The URL to download from
 ---@return string|nil, string|nil, table|nil - Downloaded content or nil, filename or nil, content list or nil
@@ -78,7 +60,7 @@ end
 
 
 ---Install widget dependencies recursively
----@param item druid.core.item_info - Widget item
+---@param item asset_store.item - Widget item
 ---@param all_items table - List of all available widgets
 ---@param install_folder string - Installation folder
 ---@param installing_set table - Set of widget IDs currently being installed (to prevent cycles)
@@ -120,7 +102,7 @@ end
 
 
 ---Install a widget from a zip URL
----@param item druid.core.item_info - Widget item data containing zip_url and id
+---@param item asset_store.item - Widget item data containing zip_url and id
 ---@param install_folder string - Target folder to install to
 ---@param all_items table|nil - Optional list of all widgets for dependency resolution
 ---@param installing_set table|nil - Optional set of widget IDs currently being installed (to prevent cycles)

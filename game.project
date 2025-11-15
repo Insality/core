@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /widget/Insality/log_panel/example/example_log_panel.collectionc
+main_collection = /widget/Insality/external_image/example/example_external_image.collectionc
 
 [script]
 shared_state = 1

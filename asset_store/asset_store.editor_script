@@ -2,7 +2,7 @@ local asset_store = require("asset_store.asset_store")
 
 local M = {}
 
----Define preferences schema
+
 function M.get_prefs_schema()
 	return {
 		["asset_store.install_folder_druid"] = editor.prefs.schema.string({
@@ -17,12 +17,11 @@ function M.get_prefs_schema()
 end
 
 
----Define the editor commands
 function M.get_commands()
 	local asset_store_commands = {
 		{
-			label = "[Assets] Editor Scripts",
-			locations = { "Edit" },
+			label = "[Asset Store] Editor Scripts",
+			locations = { "Project" },
 			run = function()
 				return asset_store.open({
 					store_url = "https://insality.github.io/core/assets_editor_scripts_store.json",
@@ -34,11 +33,14 @@ function M.get_commands()
 		}
 	}
 
+	-- Any Ideas which stores can be useful? Particles, shaders, assets like models and images?
+	-- Also can be a dependencies which will be added to game.projects, but require different logic for install
+
 	local is_druid_installed = pcall(editor.can_get, "/druid", "path")
 	if is_druid_installed then
 		table.insert(asset_store_commands, {
-			label = "[Druid] Asset Store",
-			locations = { "Edit" },
+			label = "[Asset Store] Druid Widgets",
+			locations = { "Project" },
 			run = function()
 				return asset_store.open({
 					store_url = "https://insality.github.io/core/druid_widget_store.json",
@@ -48,6 +50,11 @@ function M.get_commands()
 				})
 			end
 		})
+	end
+
+	local is_decore_installed = pcall(editor.can_get, "/decore", "path")
+	if is_decore_installed then
+		-- Systems/Entities? Looks fun
 	end
 
 	return asset_store_commands
