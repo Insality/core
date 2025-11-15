@@ -3,6 +3,10 @@
 [![Github-sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/insality) [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/insality) [![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/insality)
 
 
+# Disclaimer
+
+The repository in **development stage** and not ready to use. But if you interested in the project, you can inspect what I'm building here :)
+
 # Asset Store
 
 **Asset Store** - is an editor script for the [Defold](https://defold.com/) game engine. It provides a convenient way to browse, search, and install assets (editor scripts, Druid's widgets, and other resources) directly from the Defold editor interface.
