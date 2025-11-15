@@ -7,45 +7,47 @@ local settings_ui = require("asset_store.asset_store.ui.settings")
 local widget_list_ui = require("asset_store.asset_store.ui.widget_list")
 
 ---@class asset_store.config
----@field title string The title of the asset store
----@field store_url string The URL of the asset store
----@field install_prefs_key string The key of the install folder in the preferences
+---@field title string The title of the asset store displayed in the dialog window
+---@field store_url string The URL of the asset store JSON file containing items list
+---@field install_prefs_key string The preferences key used to store and retrieve the installation folder path
 ---@field info_url string? The URL of the info page, if nil then info button will be hidden
----@field info_button_label string? The label of the info button
----@field close_button_label string? The label of the close button
----@field empty_search_message string? The message to show when no items are found by search
----@field empty_filter_message string?
----@field labels table
----@field labels.search table
----@field labels.filters table
----@field labels.widget_card table
+---@field info_button_label string? The label text for the info button (default: "Info")
+---@field close_button_label string? The label text for the close button (default: "Close")
+---@field empty_search_message string? The message format to show when no items match search query (default: "No items found matching '%s'.")
+---@field empty_filter_message string? The message to show when no items match current filters (default: "No items found matching the current filters.")
+---@field labels table Table containing UI label overrides for different sections
+---@field labels.search table? Overrides for search UI labels (search_label, search_title, search_tooltip)
+---@field labels.filters table? Overrides for filter UI labels (type_label, author_label, tag_label, all_types, installed, not_installed, all_authors, all_tags)
+---@field labels.widget_card table? Overrides for widget card labels (install_button, api_button, example_button, author_caption, installed_tag, tags_prefix, depends_prefix, size_separator, unknown_size, unknown_version)
+---@field labels.settings table? Overrides for settings UI labels (install_label, install_title, install_tooltip)
 
 ---@class asset_store.item
----@field id string
----@field version string
----@field title string
----@field author string
----@field description string
----@field api string
----@field author_url string
----@field image string
----@field manifest_url string
----@field zip_url string
----@field json_zip_url string
----@field sha256 string
----@field size number
----@field depends string[]
----@field tags string[]
+---@field id string Unique identifier for the asset item
+---@field version string Version string of the asset (e.g., "1.0", "2.3.1")
+---@field title string Display name of the asset
+---@field author string Author name of the asset
+---@field description string Detailed description of the asset functionality
+---@field api string? URL to API documentation for the asset
+---@field author_url string? URL to author's profile or website
+---@field image string? URL to the preview image for the asset
+---@field manifest_url string URL to the asset's manifest JSON file
+---@field zip_url string URL to download the asset as a ZIP file
+---@field json_zip_url string URL to download the asset as base64-encoded JSON with file list
+---@field sha256 string SHA256 hash of the ZIP file for integrity verification
+---@field size number Size of the ZIP file in bytes
+---@field depends string[] Array of dependency strings (format: "author:widget_id@version" or "author@widget_id" or "widget_id")
+---@field tags string[] Array of tag strings for categorization and filtering
 
 
 local M = {}
 
 local INFO_RESULT = "asset_store_open_info"
+local SUPPORT_RESULT = "asset_store_open_support"
 local DEFAULT_TITLE = "Asset Store"
 local DEFAULT_INFO_BUTTON = "Info"
 local DEFAULT_CLOSE_BUTTON = "Close"
-local DEFAULT_EMPTY_SEARCH_MESSAGE = "No widgets found matching '%s'."
-local DEFAULT_EMPTY_FILTER_MESSAGE = "No widgets found matching the current filters."
+local DEFAULT_EMPTY_SEARCH_MESSAGE = "No items found matching '%s'."
+local DEFAULT_EMPTY_FILTER_MESSAGE = "No items found matching the current filters."
 local DEFAULT_SEARCH_LABELS = {
 	search_tooltip = "Search by title, author, or description"
 }
@@ -215,6 +217,13 @@ function M.open(config_input)
 		end
 
 		local buttons = {}
+
+		-- Add support button
+		table.insert(buttons, editor.ui.dialog_button({
+			text = "Support",
+			result = SUPPORT_RESULT,
+		}))
+
 		if config.info_url then
 			table.insert(buttons, editor.ui.dialog_button({
 				text = config.info_button_label,
@@ -235,9 +244,13 @@ function M.open(config_input)
 
 	local result = editor.ui.show_dialog(dialog_component({}))
 
-	if result and result == INFO_RESULT then
-		if config.info_url then
-			internal.open_url(config.info_url)
+	if result then
+		if result == INFO_RESULT then
+			if config.info_url then
+				internal.open_url(config.info_url)
+			end
+		elseif result == SUPPORT_RESULT then
+			internal.open_url("https://github.com/sponsors/insality")
 		end
 	end
 
